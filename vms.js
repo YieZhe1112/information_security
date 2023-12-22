@@ -507,11 +507,9 @@ app.get('/login/security/logout', (req, res) => {
  *                email:
  *                  type: string
  *                role:
- *                  type: string
- *                  description: visitor
+ *                  type: visitor
  *                lastCheckinTime:
- *                  type: string
- *                  description: not cehck in yet
+ *                  type: not cehck in yet
  */
 
 /**
