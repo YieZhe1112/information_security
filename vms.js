@@ -19,7 +19,7 @@ const options = {
 const swaggerSpec = swaggerJsdoc (options);
 
 app.use(express.json());
-app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));	//localhost behind add this /api-docs
+app.use("", swaggerUi.serve,swaggerUi.setup(swaggerSpec));	//localhost behind add this /api-docs
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
  })
