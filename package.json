@@ -1,0 +1,19 @@
+{
+  "name": "code1",
+  "version": "1.0.0",
+  "main": "vms.js",
+  "scripts": {
+    "start": "node vms.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "dependencies": {
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongodb": "^5.9.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
+  },
+  "description": ""
+}

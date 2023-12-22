@@ -1,0 +1,112 @@
+###
+POST http://localhost:3000/login
+Content-Type: application/json
+
+{
+    "username" : "HO",
+    "password" : 123455
+}
+
+###
+POST http://localhost:3000/login/visitor/updatePassword
+Content-Type: application/json
+
+{
+    "password" : 123456
+}
+
+###
+POST http://localhost:3000/login/security/updatePassword
+Content-Type: application/json
+
+{
+    "password" : 123456
+}
+
+###
+POST http://localhost:3000/login/security/register/visitor
+Content-Type: application/json
+
+{
+    "username" : "GOH",
+    "password" : 111111,
+    "_id"      : "000101-02-1111",
+    "email"    : "goh@student.utem.edu.my",
+    "role"     : "visitor",
+    "lastCheckinTime" :"not cehck in yet"
+}
+
+###
+POST http://localhost:3000/login/security/register/host
+Content-Type: application/json
+
+{
+    "username" : "HO",
+    "password" : 111111,
+    "_id"      : "000201-00-9919",
+    "email"    : "ho@student.utem.edu.my",
+    "role"     : "host"
+}
+
+###
+POST http://localhost:3000/login/security/deleteHost
+Content-Type: application/json
+
+{
+    "username" : "HO"
+}
+
+###
+POST http://localhost:3000/login/security/deleteVisitor
+Content-Type: application/json
+
+{
+    "username" : "TAN"
+}
+
+###
+POST http://localhost:3000/login/host/updatePassword
+Content-Type: application/json
+
+{
+    "password" : 111111
+}
+
+###
+POST http://localhost:3000/login/host/search
+Content-Type: application/json
+
+{
+    "_id" : "000101-02-1111"
+}
+
+###
+POST http://localhost:3000/login/host/addVisitor
+Content-Type: application/json
+
+{
+    "visitorName" : "TAN",
+    "phoneNumber" : "012-3456789",
+    "companyName" : "qqqqq",
+    "date"        : "2023-07-2",
+    "time"        : "8.30 pm"
+}
+
+###
+POST http://localhost:3000/login/host/removeVisitor
+Content-Type: application/json
+
+{
+    "visitorName" : "GOH",
+    "date"        : "2023-06-30",
+    "time"        : "8.00 pm"
+}
+
+###
+GET http://localhost:3000/login/host/logout
+
+###
+GET http://localhost:3000/login/visitor/logout
+
+###
+GET http://localhost:3000/login/security/logout
