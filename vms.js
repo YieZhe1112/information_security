@@ -472,6 +472,22 @@ app.get('/login/security/logout', (req, res) => {
 
 /**
  * @swagger
+ *  /login/security/updatePassword:
+ *    post:
+ *      description: User login
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                password:
+ *                  type: string
+ */
+
+/**
+ * @swagger
  *  /login/visitor/logout:
  *    get:
  *      description: User logout
