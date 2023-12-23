@@ -584,6 +584,8 @@ app.get('/login/security/logout', (req, res) => {
  *            schema:
  *              type: object
  *              properties:
+ *                _id:
+ *                  type: string
  *                visitorName:
  *                  type: string
  *                phoneNumber:
