@@ -384,7 +384,7 @@ app.post('/login/host/search', async(req, res) => {   //look up visitor details
 
 app.post('/login/host/addVisitor', async (req, res) => {   //add visitor
     if ((role == "host")){
-        let response = await addVisitor(req.body.Ic,req.body.visitorName,req.body.phoneNumber,req.body.companyName,req.body.date,req.body.time)
+        let response = await addVisitor(req.body._id,req.body.visitorName,req.body.phoneNumber,req.body.companyName,req.body.date,req.body.time)
         res.send (response)
     }
     else

@@ -4,7 +4,7 @@ Content-Type: application/json
 
 {
     "username" : "HO",
-    "password" : 123455
+    "password" : "Ho_000201"
 }
 
 ###
@@ -20,7 +20,7 @@ POST http://localhost:3000/login/security/updatePassword
 Content-Type: application/json
 
 {
-    "password" : 123456
+    "password" : "1234561"
 }
 
 ###
@@ -85,7 +85,8 @@ POST http://localhost:3000/login/host/addVisitor
 Content-Type: application/json
 
 {
-    "visitorName" : "TAN",
+    "_id"         : "011012-01-2212",
+    "visitorName" : "YAP",
     "phoneNumber" : "012-3456789",
     "companyName" : "qqqqq",
     "date"        : "2023-07-2",
@@ -97,9 +98,9 @@ POST http://localhost:3000/login/host/removeVisitor
 Content-Type: application/json
 
 {
-    "visitorName" : "GOH",
-    "date"        : "2023-06-30",
-    "time"        : "8.00 pm"
+    "visitorName" : "YAP",
+    "date"        : "2023-07-2",
+    "time"        : "8.30 pm"
 }
 
 ###
