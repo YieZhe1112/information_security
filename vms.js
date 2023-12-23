@@ -166,6 +166,7 @@ async function login(Username,Password){  //user and host login
             },option)
 
             if(result){
+                security = result.username
                 console.log(result)
                 console.log("Successfully Login")
                 l = "true"
@@ -249,13 +250,13 @@ async function updateHostPass(regPassword){
         return "Same password cannot be applied"
 }
 
-async function updateHostPass(regPassword){
+async function updateSecurityPass(regPassword){
 
     result = await client.db("user").collection("security").findOne ({username:{$eq:security}})
 
     if (result.password != regPassword){
         await client.db("user").collection("security").updateOne({
-            username:{$eq:host}
+            username:{$eq:security}
         },{$set:{password:regPassword}})
 
         let data= "Password "+security+" is successfully updated"
