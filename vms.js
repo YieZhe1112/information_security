@@ -437,6 +437,8 @@ app.get('/login/security/logout', (req, res) => {
  * @swagger
  *  /login:
  *    post:
+ *      tags:
+ *      - Login
  *      description: User login
  *      requestBody:
  *        required: true
@@ -487,6 +489,9 @@ app.get('/login/security/logout', (req, res) => {
  *              properties:
  *                password:
  *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
  */
 
 /**
@@ -513,6 +518,9 @@ app.get('/login/security/logout', (req, res) => {
  *                  type: visitor
  *                lastCheckinTime:
  *                  type: "not cehck in yet"
+ *      responses:
+ *        200:
+ *          description: OK
  */
 
 /**
@@ -520,4 +528,7 @@ app.get('/login/security/logout', (req, res) => {
  *  /login/visitor/logout:
  *    get:
  *      description: User logout
+ *      responses:
+ *        200:
+ *          description: OK
  */
