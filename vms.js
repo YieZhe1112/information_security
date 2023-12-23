@@ -503,7 +503,7 @@ app.get('/login/security/logout', (req, res) => {
  *  /login/security/register/visitor:
  *    post:
  *      tags:
- *      - Visitor
+ *      - Security
  *      description: Register visitor
  *      requestBody:
  *        required: true
@@ -524,6 +524,35 @@ app.get('/login/security/logout', (req, res) => {
  *                  type: visitor
  *                lastCheckinTime:
  *                  type: "not cehck in yet"
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
+ *  /login/security/register/host:
+ *    post:
+ *      tags:
+ *      - Security
+ *      description: Register visitor
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                username:
+ *                  type: string
+ *                password:
+ *                  type: string
+ *                _id:
+ *                  type: string
+ *                email:
+ *                  type: string
+ *                role:
+ *                  type: visitor
  *      responses:
  *        200:
  *          description: OK
