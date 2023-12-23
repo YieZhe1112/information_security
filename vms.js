@@ -500,6 +500,102 @@ app.get('/login/security/logout', (req, res) => {
 
 /**
  * @swagger
+ *  /login/host/updatePassword:
+ *    post:
+ *      tags:
+ *      - Host 
+ *      description: Host update password
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                password:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
+ *  /login/host/search:
+ *    post:
+ *      tags:
+ *      - Host
+ *      description: Search visitor
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                _id:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
+ *  /login/host/addVisitor:
+ *    post:
+ *      tags:
+ *      - Host
+ *      description: Add visitor
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                visitorName:
+ *                  type: string
+ *                phoneNumber:
+ *                  type: integar
+ *                companyName:
+ *                  type: string
+ *                date:
+ *                  type: string
+ *                time:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
+ *  /login/host/removeVisitor:
+ *    post:
+ *      tags:
+ *      - Host
+ *      description: Add visitor
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                visitorName:
+ *                  type: string
+ *                date:
+ *                  type: string
+ *                time:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
  *  /login/security/register/visitor:
  *    post:
  *      tags:
@@ -535,7 +631,7 @@ app.get('/login/security/logout', (req, res) => {
  *    post:
  *      tags:
  *      - Security
- *      description: Register visitor
+ *      description: Register host
  *      requestBody:
  *        required: true
  *        content:
@@ -560,10 +656,76 @@ app.get('/login/security/logout', (req, res) => {
 
 /**
  * @swagger
+ *  /login/security/deleteHost:
+ *    post:
+ *      tags:
+ *      - Security
+ *      description: Delete host
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                username:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
+ *  /login/security/deleteVisitor:
+ *    post:
+ *      tags:
+ *      - Security
+ *      description: Delete visitor
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                username:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
  *  /login/visitor/logout:
  *    get:
  *      tags:
  *      - Visitor
+ *      description: User logout
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
+ *  /login/security/logout:
+ *    get:
+ *      tags:
+ *      - Security
+ *      description: User logout
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
+ *  /login/host/logout:
+ *    get:
+ *      tags:
+ *      - Host
  *      description: User logout
  *      responses:
  *        200:
