@@ -414,7 +414,7 @@ app.post('/login/security/updatePassword', async(req, res) => {   //login
         res.send(await updateSecurityPass(req.body.password))
     }
     else
-        res.send ("You are not a host") 
+        res.send ("You are not a security") 
 })
 
 app.post("/login/security/deleteHost" , async(req, res) => {  //delete host
