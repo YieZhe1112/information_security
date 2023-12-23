@@ -308,12 +308,12 @@ async function removeVisitor(removeVisitor,removeDate,removeTime){
             username: removeVisitor
         },{$pull:{host:{name:host,date:removeDate,time:removeTime}}},{upsert:true})
 
-        console.log("Visitor",removeVisitor,"is successfully remove")
+        res.send("Visitor",removeVisitor,"is successfully remove")
         let data = "Visitor "+removeVisitor+" is successfully remove"
         return data
     }
     else
-        console.log ("No appointment found")
+        res.send ("No appointment found")
         return "No appointment found"
 }
 
@@ -589,7 +589,7 @@ app.get('/login/security/logout', (req, res) => {
  *                visitorName:
  *                  type: string
  *                phoneNumber:
- *                  type: integar
+ *                  type: string
  *                companyName:
  *                  type: string
  *                date:
