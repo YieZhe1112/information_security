@@ -410,7 +410,7 @@ app.get('/login/host/logout', (req, res) => {
 //security http mehtods    
 
 app.post('/login/security/updatePassword', async(req, res) => {   //login
-    if ((role == "host")){
+    if ((role == "security")){
         res.send(await updateSecurityPass(req.body.password))
     }
     else
