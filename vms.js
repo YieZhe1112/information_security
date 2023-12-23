@@ -460,6 +460,8 @@ app.get('/login/security/logout', (req, res) => {
  * @swagger
  *  /login/visitor/updatePassword:
  *    post:
+ *      tags:
+ *      - Visitor
  *      description: Visitor update password
  *      requestBody:
  *        required: true
@@ -479,6 +481,8 @@ app.get('/login/security/logout', (req, res) => {
  * @swagger
  *  /login/security/updatePassword:
  *    post:
+ *      tags:
+ *      - Security 
  *      description: Security update password
  *      requestBody:
  *        required: true
@@ -498,6 +502,8 @@ app.get('/login/security/logout', (req, res) => {
  * @swagger
  *  /login/security/register/visitor:
  *    post:
+ *      tags:
+ *      - Visitor
  *      description: Register visitor
  *      requestBody:
  *        required: true
@@ -527,6 +533,8 @@ app.get('/login/security/logout', (req, res) => {
  * @swagger
  *  /login/visitor/logout:
  *    get:
+ *      tags:
+ *      - Visitor
  *      description: User logout
  *      responses:
  *        200:
