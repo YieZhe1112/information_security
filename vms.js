@@ -352,6 +352,7 @@ app.post('/login/visitor/updatePassword', async(req, res) => {   //login
 
 app.get('/login/visitor/logout', (req, res) => {
     if ((role == "visitor")){
+        role == "NULL"
         res.send("You have successfully log out")
         console.log("You have successfully log out")
     }
@@ -401,11 +402,13 @@ app.post('/login/host/removeVisitor', (req, res) => {   //remove visitor
 
 app.get('/login/host/logout', (req, res) => { 
     if ((role == "host")){
+        role == "NULL"
         res.send("You have successfully log out")
-        l = "false"    
-    }   
+        console.log("You have successfully log out")
+    }
     else
         res.send ("You had log out")
+        console.log ("You had log out")
 })
     
 //security http mehtods    
@@ -448,10 +451,12 @@ app.post("/login/security/register/host" , async(req, res) => {  //register host
 
 app.get('/login/security/logout', (req, res) => {
     if ((role == "security")){
+        role == "NULL"
+        res.send("You have successfully log out")
         console.log("You have successfully log out")
-        l = "false"
     }
     else
+        res.send ("You had log out")
         console.log ("You had log out")
 })
 
@@ -673,7 +678,7 @@ app.get('/login/security/logout', (req, res) => {
  *                email:
  *                  type: string
  *                role:
- *                  type: visitor
+ *                  type: string host
  *      responses:
  *        200:
  *          description: OK
