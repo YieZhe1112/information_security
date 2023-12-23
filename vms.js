@@ -249,6 +249,22 @@ async function updateHostPass(regPassword){
         return "Same password cannot be applied"
 }
 
+async function updateHostPass(regPassword){
+
+    result = await client.db("user").collection("security").findOne ({username:{$eq:security}})
+
+    if (result.password != regPassword){
+        await client.db("user").collection("security").updateOne({
+            username:{$eq:host}
+        },{$set:{password:regPassword}})
+
+        let data= "Password "+security+" is successfully updated"
+        return data
+    }
+    else
+        return "Same password cannot be applied"
+}
+
 async function addVisitor(visitorIC,visitorName,phoneNumber,companyName,date,time){
     //to check whether there is same visitor in array
     let result = await client.db("user").collection("visitor").findOne({_id: visitorIC, username: visitorName})
@@ -350,7 +366,7 @@ app.get('/login/visitor/logout', (req, res) => {
 })*/
 
 app.post('/login/host/updatePassword', async(req, res) => {   //login
-    if ((role == "host") && (l == "true")){
+    if ((role == "host")){
         res.send(await updateHostPass(req.body.password))
     }
     else
@@ -358,14 +374,14 @@ app.post('/login/host/updatePassword', async(req, res) => {   //login
 })
 
 app.post('/login/host/search', async(req, res) => {   //look up visitor details
-    if ((role == "host") && (l == "true"))
+    if ((role == "host"))
         res.send (await searchVisitor(req.body._id))
     else
         res.send ("You are not a host")
 })
 
 app.post('/login/host/addVisitor', async (req, res) => {   //add visitor
-    if ((role == "host") && (l == "true")){
+    if ((role == "host")){
         let response = await addVisitor(req.body.Ic,req.body.visitorName,req.body.phoneNumber,req.body.companyName,req.body.date,req.body.time)
         res.send (response)
     }
@@ -374,7 +390,7 @@ app.post('/login/host/addVisitor', async (req, res) => {   //add visitor
 })
 
 app.post('/login/host/removeVisitor', (req, res) => {   //remove visitor
-    if ((role == "host") && (l == "true")){
+    if ((role == "host")){
         let response = removeVisitor(req.body.visitorName,req.body.date,req.body.time)
         res.send (response)
     }
@@ -383,7 +399,7 @@ app.post('/login/host/removeVisitor', (req, res) => {   //remove visitor
 })
 
 app.get('/login/host/logout', (req, res) => { 
-    if ((role == "host") && (l == "true")){
+    if ((role == "host")){
         res.send("You have successfully log out")
         l = "false"    
     }   
@@ -393,36 +409,44 @@ app.get('/login/host/logout', (req, res) => {
     
 //security http mehtods    
 
+app.post('/login/security/updatePassword', async(req, res) => {   //login
+    if ((role == "host")){
+        res.send(await updateSecurityPass(req.body.password))
+    }
+    else
+        res.send ("You are not a host") 
+})
+
 app.post("/login/security/deleteHost" , async(req, res) => {  //delete host
-    if ((role == "security") && (l == "true"))
+    if ((role == "security"))
         res.send(await deleteHostAcc(req.body.username))
     else
         res.send ("You are not a security")
 })
 
 app.post("/login/security/deleteVisitor" , async(req, res) => {  //delete visitor
-    if ((role == "security") && (l == "true"))
+    if ((role == "security"))
         res.send(await deleteVisitorAcc(req.body.username))
     else
         res.send ("You are not a security")
 })
 
 app.post("/login/security/register/visitor" , async (req, res) => {  //register visitor
-    if ((role == "security") && (l == "true"))
+    if ((role == "security"))
         res.send(await registerVisitor(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role,req.body.lastCheckinTime))
     else
         res.send ("You are not a security")
 })
         
 app.post("/login/security/register/host" , async(req, res) => {  //register host
-    if ((role == "security") && (l == "true"))
+    if ((role == "security"))
         res.send(await registerHost(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role))    
     else
         res.send ("You are not a security")     
 })
 
 app.get('/login/security/logout', (req, res) => {
-    if ((role == "security") && (l == "true")){
+    if ((role == "security")){
         console.log("You have successfully log out")
         l = "false"
     }
