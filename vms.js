@@ -468,6 +468,9 @@ app.get('/login/security/logout', (req, res) => {
  *              properties:
  *                password:
  *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
  */
 
 /**
