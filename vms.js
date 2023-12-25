@@ -650,10 +650,6 @@ app.get('/login/security/logout', (req, res) => {
  *                  type: string
  *                email:
  *                  type: string
- *                role:
- *                  type: visitor
- *                lastCheckinTime:
- *                  type: "not cehck in yet"
  *      responses:
  *        200:
  *          description: OK
@@ -681,8 +677,6 @@ app.get('/login/security/logout', (req, res) => {
  *                  type: string
  *                email:
  *                  type: string
- *                role:
- *                  type: string host
  *      responses:
  *        200:
  *          description: OK
