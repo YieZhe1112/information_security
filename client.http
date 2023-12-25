@@ -3,8 +3,8 @@ POST http://localhost:3000/login
 Content-Type: application/json
 
 {
-    "username" : "HO",
-    "password" : "Ho_000201"
+    "username" : "KHOO",
+    "password" : "123456"
 }
 
 ###
@@ -31,9 +31,7 @@ Content-Type: application/json
     "username" : "GOH",
     "password" : 111111,
     "_id"      : "000101-02-1111",
-    "email"    : "goh@student.utem.edu.my",
-    "role"     : "visitor",
-    "lastCheckinTime" :"not cehck in yet"
+    "email"    : "goh@student.utem.edu.my"
 }
 
 ###
@@ -44,8 +42,7 @@ Content-Type: application/json
     "username" : "HO",
     "password" : 111111,
     "_id"      : "000201-00-9919",
-    "email"    : "ho@student.utem.edu.my",
-    "role"     : "host"
+    "email"    : "ho@student.utem.edu.my"
 }
 
 ###

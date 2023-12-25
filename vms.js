@@ -70,8 +70,8 @@ async function registerVisitor(regIC,regUsername,regPassword,regEmail,regRole,re
                 "username":regUsername,
                 "password":regPassword,
                 "email":regEmail,
-                "role":regRole,
-                "lastCheckinTime" :regLast
+                "role":"visitor",
+                "lastCheckinTime" :"not cehck in yet"
             })
             let data = regUsername+" is successfully register"
             return data
@@ -99,7 +99,7 @@ async function registerHost(regIC,regUsername,regPassword,regEmail,regRole){  //
                 "username":regUsername,
                 "password":regPassword,
                 "email":regEmail,
-                "role":regRole
+                "role":"host"
             })
             let data = regUsername + " is successfully register"
             return data
@@ -308,12 +308,14 @@ async function removeVisitor(removeVisitor,removeDate,removeTime){
             username: removeVisitor
         },{$pull:{host:{name:host,date:removeDate,time:removeTime}}},{upsert:true})
 
-        res.send("Visitor",removeVisitor,"is successfully remove")
+        
+        //let data = "Visitor "+removeVisitor+" is successfully remove"
+        console.log("Visitor "+removeVisitor+" is successfully remove")
         let data = "Visitor "+removeVisitor+" is successfully remove"
-        return data
+        return "data"
     }
     else
-        res.send ("No appointment found")
+        console.log("No appointment found")
         return "No appointment found"
 }
 
