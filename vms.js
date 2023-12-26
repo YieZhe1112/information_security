@@ -490,69 +490,6 @@ app.get('/login/security/logout', (req, res) => {
 
 /**
  * @swagger
- *  /login/visitor/updatePassword:
- *    post:
- *      tags:
- *      - Visitor
- *      description: Visitor update password
- *      requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                password:
- *                  type: string
- *      responses:
- *        200:
- *          description: OK
- */
-
-/**
- * @swagger
- *  /login/security/updatePassword:
- *    post:
- *      tags:
- *      - Security 
- *      description: Security update password
- *      requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                password:
- *                  type: string
- *      responses:
- *        200:
- *          description: OK
- */
-
-/**
- * @swagger
- *  /login/host/updatePassword:
- *    post:
- *      tags:
- *      - Host 
- *      description: Host update password
- *      requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                password:
- *                  type: string
- *      responses:
- *        200:
- *          description: OK
- */
-
-/**
- * @swagger
  *  /login/host/search:
  *    post:
  *      tags:
