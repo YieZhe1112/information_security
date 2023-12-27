@@ -180,7 +180,7 @@ async function registerHost(regIC,regUsername,regPassword,regEmail,regRole){  //
     }
     
     else {
-        if( await client.db("user").collection("host").findOne({username: regUsername})){
+        if( await client.db("user").collection("host").findOne({host: regUsername})){
             return "Your Username already exist. Please try to login"
         }
 
@@ -191,7 +191,7 @@ async function registerHost(regIC,regUsername,regPassword,regEmail,regRole){  //
         else{
             await client.db("user").collection("host").insertOne({
                 "_id":regIC,
-                "username":regUsername,
+                "host":regUsername,
                 "password":regPassword,
                 "email":regEmail,
                 "role":"host"
@@ -222,7 +222,7 @@ async function deleteVisitorAcc(Username){  //delete visitor acc
 
 async function deleteHostAcc(Username){  //delete host acc
     const result = await client.db("user").collection("host").deleteOne({
-        username:{$eq:Username}
+        host:{$eq:Username}
     })
 
     await client.db("user").collection("visitor").updateMany({
@@ -272,7 +272,7 @@ async function removeVisitor(removeVisitor,removeDate,removeTime){
     let result = await client.db("user").collection("visitor").findOne({username: removeVisitor, "host.name": host, "host.date":removeDate,"host.time":removeTime})
     if (result){
         await client.db("user").collection("host").updateOne({
-            username: host
+            host: host
         },{$pull:{visitor:{name:removeVisitor},visitor:{date:removeDate},visitor:{time:removeTime}}},{upsert:true})
 
         
@@ -543,33 +543,6 @@ app.post('/visitorRetrivePass', async(req, res) => {   //retrive pass
 
 /**
  * @swagger
- *  /login/security/register/visitor:
- *    post:
- *      tags:
- *      - Security
- *      description: Register visitor
- *      requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                username:
- *                  type: string
- *                password:
- *                  type: string
- *                _id:
- *                  type: string
- *                email:
- *                  type: string
- *      responses:
- *        200:
- *          description: OK
- */
-
-/**
- * @swagger
  *  /login/security/register/host:
  *    post:
  *      tags:
@@ -582,7 +555,7 @@ app.post('/visitorRetrivePass', async(req, res) => {   //retrive pass
  *            schema:
  *              type: object
  *              properties:
- *                username:
+ *                host:
  *                  type: string
  *                password:
  *                  type: string
