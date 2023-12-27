@@ -582,7 +582,7 @@ app.post('/visitorRetrivePass', async(req, res) => {   //retrive pass
  *            schema:
  *              type: object
  *              properties:
- *                username:
+ *                host:
  *                  type: string
  *      responses:
  *        200:
