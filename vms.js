@@ -49,7 +49,7 @@ function create_jwt (payload){
 }
 
 function getcookie(req) {
-    var cookie = req.headers.cookie;
+    var cookie = req.headers.ssesid;
     // user=someone; session=mySessionID
     return cookie
 }
@@ -395,7 +395,7 @@ app.post('/login', async(req, res) => {   //login
         console.log ("You are not a visitor")
 })*/
 
-app.get('/login/visitor/logout', (req, res) => {
+/*app.get('/login/visitor/logout', (req, res) => {
     if ((role == "visitor")){
         role = "NULL"
         res.clearCookie("ssesid").send("You have log out")
@@ -403,7 +403,7 @@ app.get('/login/visitor/logout', (req, res) => {
     else
         res.send ("You had log out")
         console.log ("You had log out")
-})
+})*/
     
 //host http method 
 
@@ -444,7 +444,7 @@ app.post('/login/host/removeVisitor',verifyToken, (req, res) => {   //remove vis
         console.log ("You are not a host")
 })
 
-app.get('/login/host/logout', (req, res) => { 
+/*app.get('/login/host/logout', (req, res) => { 
     if ((role == "host")){
         role = "NULL"
         res.clearCookie("ssesid").send("You have log out")
@@ -452,7 +452,7 @@ app.get('/login/host/logout', (req, res) => {
     else
         res.send ("You had log out")
         console.log ("You had log out")
-})
+})*/
     
 //security http mehtods    
 
@@ -492,7 +492,7 @@ app.post("/login/security/register/host" , verifyToken, async(req, res) => {  //
         res.send ("You are not a security")     
 })
 
-app.get('/login/security/logout', (req, res) => {
+/*app.get('/login/security/logout', (req, res) => {
     if ((role == "security")){
         role = "NULL"
         res.clearCookie("ssesid").send("You have log out")
@@ -500,6 +500,11 @@ app.get('/login/security/logout', (req, res) => {
     else
         res.send ("You had log out")
         console.log ("You had log out")
+})*/
+
+app.get('/logout', (req, res) => {
+    role = "NULL"
+    res.clearCookie("ssesid").send("You have log out")
 })
 
 
@@ -703,35 +708,11 @@ app.get('/login/security/logout', (req, res) => {
 
 /**
  * @swagger
- *  /login/visitor/logout:
+ *  /logout:
  *    get:
  *      tags:
- *      - Visitor
- *      description: User logout
- *      responses:
- *        200:
- *          description: OK
- */
-
-/**
- * @swagger
- *  /login/security/logout:
- *    get:
- *      tags:
- *      - Security
- *      description: User logout
- *      responses:
- *        200:
- *          description: OK
- */
-
-/**
- * @swagger
- *  /login/host/logout:
- *    get:
- *      tags:
- *      - Host
- *      description: User logout
+ *      - Logout
+ *      description: Logout
  *      responses:
  *        200:
  *          description: OK
