@@ -54,6 +54,7 @@ function getcookie(req) {
 
 function verifyToken (req, res, next){
     var token = req.cookies.ssesid
+    console.log(token)
 
     if (!token){
         role = " "
@@ -67,6 +68,12 @@ function verifyToken (req, res, next){
         }
         
         req.user = user
+        if(user.role == "security"){
+            security = user.username
+        }
+        else if(user.role == "host"){
+            host = user.username
+        }
         return next()
     });
 }
@@ -152,39 +159,11 @@ async function login(Username,Password){  //user and host login
 
     const option={projection:{password:0}}  //pipeline to project usernamne and email
 
-    const result = await client.db("user").collection("visitor").findOne({  
+    const result = await client.db("user").collection("host").findOne({
         $and:[
             {username:{$eq:Username}},
             {password:{$eq:Password}}
             ]
-    },option)
-
-    await client.db("user").collection("visitor").updateOne({  
-        username:Username
-    },
-    {
-        $currentDate: {
-        "lastCheckinTime": true
-     },
-    })
-
-    if(result){
-        t = 's'
-        visitor = result.username
-        console.log(result)
-        console.log("Successfully Login")
-        role = "visitor"
-        create_jwt (result)
-        return result
-    }
-    else {
-        const option={projection:{password:0}}  //pipeline to project usernamne and email
-
-        const result = await client.db("user").collection("host").findOne({
-            $and:[
-                {username:{$eq:Username}},
-                {password:{$eq:Password}}
-                ]
         },option)
 
         if(result){
@@ -196,7 +175,7 @@ async function login(Username,Password){  //user and host login
             create_jwt (result)
             return result
             
-        }
+    }
         else {
             const option={projection:{password:0}}  //pipeline to project usernamne and email
 
@@ -205,7 +184,7 @@ async function login(Username,Password){  //user and host login
                     {username:{$eq:Username}},
                     {password:{$eq:Password}}
                     ]
-            },option)
+        },option)
 
             if(result){
                 t = 's'
@@ -217,15 +196,14 @@ async function login(Username,Password){  //user and host login
                 return result
                 
                 
-            }
+        }
             else{
                 t = 'e'
                 console.log("User not found or password error")
                 return "User not found or password error"
                 
-            }
-        } 
-    }
+        }
+    } 
 }
 
 async function deleteVisitorAcc(Username){  //delete visitor acc
