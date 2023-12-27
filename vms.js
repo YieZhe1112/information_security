@@ -238,33 +238,33 @@ async function deleteHostAcc(Username){  //delete host acc
     }
 }
 
-async function addVisitor(visitorIC,visitorName,phoneNumber,companyName,date,time){
+async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
     //to check whether there is same visitor in array
-    let result = await client.db("user").collection("visitor").findOne({_id: visitorIC, username: visitorName})
+    console.log(host)
+    // let filter = await client.db("user").collection("host").findOne({
+    //     username:{$eq:host}
+    // })
+    let result = await client.db("user").collection("host").findOne({
+        // visitor:{$elemMatch:{_id}}},
+        $and:[
+            {visitor:{$elemMatch:{_id}}},
+            {visitor:{$elemMatch:{time}}}
+            ]
+    
+        })
     
     if (result){
-        let addVis = await client.db("user").collection("visitor").findOne({_id: visitorIC, username: visitorName, "host.name": host, "host.time": time, "host.date": date})
-        if (!addVis){
-            await client.db("user").collection("host").updateOne({
-                username: host
-            },{$push:{visitor:{name:visitorName,phone:phoneNumber,company:companyName,date:date,time:time}}},{upsert:true})
-
-            await client.db("user").collection("visitor").updateOne({
-                username:{$eq:visitorName}
-            },{$push:{host:{name:host,date:date,time:time}}})
-            console.log("The visitor is added successfully")
-            return "The visitor is added successfully"
-        }
-        else
-            console.log ("The visitor you entered already in list")
-            return "The visitor you entered already in list"
-
+        console.log ("The visitor you entered already in list or time is occupied")
+        console.log (result)
+        return "The visitor you entered already in list or time is occupied"
     }
-    else 
-        console.log ("The visitor you entered hasn't registered, please register with security in charge")
-        return "The visitor you entered hasn't registered, please register with security in charge"
-            
-            
+    else{
+        await client.db("user").collection("host").updateOne({username: host},{
+            $push:{visitor:{_id:_id,name:visitorName,phone:phoneNumber,company:companyName,date:date,time:time}}},{upsert:true})
+        console.log("The visitor is added successfully")
+        console.log(result)
+        return "The visitor is added successfully"
+    }
 }
 
 async function removeVisitor(removeVisitor,removeDate,removeTime){
@@ -299,6 +299,33 @@ async function searchVisitor(IC){
     },option)
     console.log(result)
     return result
+}
+
+async function retrivepass(username,_id,date,time){
+    const result = await client.db("user").collection("host").findOne({
+        $and:[
+            {host:{$eq:username}},
+            {visitor:{$elemMatch:{_id}}},
+            {visitor:{$elemMatch:{date}}},
+            {visitor:{$elemMatch:{time}}}
+            ]
+    })
+
+    if(result){
+        await client.db("user").collection("host").updateOne({host:{$eq:username}},{
+            $pull:{visitor:{_id:_id},visitor:{date:date}}},{upsert:true})
+
+        console.log("Successfully retrive pass")
+        return "Successfully retrive pass"
+        // console.log("Pass already retrived or not in the list")
+        // return "Pass already retrived or not in the lits"
+    }
+    else{
+        console.log("Pass already retrived or not in the list")
+        return "Pass already retrived or not in the lits"
+        // console.log("Successfully retrive pass")
+        // return "Successfully retrive pass"
+    }
 }
 
 //HTTP login method
@@ -381,6 +408,10 @@ app.get('/logout', (req, res) => {
     res.clearCookie("ssesid").send("You have log out")
 })
 
+app.post('/visitorRetrivePass', async(req, res) => {   //retrive pass
+    res.send(await retrivepass(req.body.username,req.body._id,req.body.date,req.body.time))
+})
+
 
 /**
  * @swagger
@@ -400,6 +431,34 @@ app.get('/logout', (req, res) => {
  *                  type: string
  *                password:
  *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
+ *  /visitorRetrivePass:
+ *    post:
+ *      tags:
+ *      - Visitor
+ *      description: Visitor retrive pass
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                host:
+ *                  type: string
+ *                _id:
+ *                  type: string
+ *                date:
+ *                  type: string
+ *                time:
+ *                  type: string
+ * 
  *      responses:
  *        200:
  *          description: OK
