@@ -180,7 +180,7 @@ async function registerHost(regIC,regUsername,regPassword,regEmail,regRole){  //
     }
     
     else {
-        if( await client.db("user").collection("host").findOne({host: regUsername})){
+        if( await client.db("user").collection("host").findOne({username: regUsername})){
             return "Your Username already exist. Please try to login"
         }
 
@@ -191,7 +191,7 @@ async function registerHost(regIC,regUsername,regPassword,regEmail,regRole){  //
         else{
             await client.db("user").collection("host").insertOne({
                 "_id":regIC,
-                "host":regUsername,
+                "username":regUsername,
                 "password":regPassword,
                 "email":regEmail,
                 "role":"host"
@@ -222,7 +222,7 @@ async function deleteVisitorAcc(Username){  //delete visitor acc
 
 async function deleteHostAcc(Username){  //delete host acc
     const result = await client.db("user").collection("host").deleteOne({
-        host:{$eq:Username}
+        username:{$eq:Username}
     })
 
     await client.db("user").collection("visitor").updateMany({
@@ -272,7 +272,7 @@ async function removeVisitor(removeVisitor,removeDate,removeTime){
     let result = await client.db("user").collection("visitor").findOne({username: removeVisitor, "host.name": host, "host.date":removeDate,"host.time":removeTime})
     if (result){
         await client.db("user").collection("host").updateOne({
-            host: host
+            username: host
         },{$pull:{visitor:{name:removeVisitor},visitor:{date:removeDate},visitor:{time:removeTime}}},{upsert:true})
 
         
@@ -304,7 +304,7 @@ async function searchVisitor(IC){
 async function retrivepass(username,_id,date,time){
     const result = await client.db("user").collection("host").findOne({
         $and:[
-            {host:{$eq:username}},
+            {username:{$eq:username}},
             {visitor:{$elemMatch:{_id}}},
             {visitor:{$elemMatch:{date}}},
             {visitor:{$elemMatch:{time}}}
@@ -312,7 +312,7 @@ async function retrivepass(username,_id,date,time){
     })
 
     if(result){
-        await client.db("user").collection("host").updateOne({host:{$eq:username}},{
+        await client.db("user").collection("host").updateOne({username:{$eq:username}},{
             $pull:{visitor:{_id:_id},visitor:{date:date}}},{upsert:true})
 
         console.log("Successfully retrive pass")
@@ -555,7 +555,7 @@ app.post('/visitorRetrivePass', async(req, res) => {   //retrive pass
  *            schema:
  *              type: object
  *              properties:
- *                host:
+ *                username:
  *                  type: string
  *                password:
  *                  type: string
@@ -582,7 +582,7 @@ app.post('/visitorRetrivePass', async(req, res) => {   //retrive pass
  *            schema:
  *              type: object
  *              properties:
- *                host:
+ *                username:
  *                  type: string
  *      responses:
  *        200:
