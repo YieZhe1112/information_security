@@ -3,9 +3,9 @@ const jwt = require("jsonwebtoken")
 const cookieParser = require("cookie-parser")
 const app = express()
 const port = process.env.PORT || 3000;
-
 const swaggerUi = require ("swagger-ui-express")
 const swaggerJsdoc = require("swagger-jsdoc")
+const swaggerSpec = swaggerJsdoc (options)
 
 const options = {
     definition: {
@@ -18,12 +18,9 @@ const options = {
     apis: ["./vms.js"],		//depends on your swagger command file
 };
 
-const swaggerSpec = swaggerJsdoc (options)
-
 app.use(express.json())
 app.use(cookieParser())
 app.use(express.urlencoded({extended:true}))
-
 app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));	//localhost behind add this /api-docs
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
@@ -40,7 +37,7 @@ global.role
 
 var jwt_token
 var cookie
-var state = 0
+var t
 
 function create_jwt (payload){
     jwt_token = jwt.sign(payload, 'super_secret');
@@ -54,7 +51,6 @@ function getcookie(req) {
 
 function verifyToken (req, res, next){
     var token = req.cookies.ssesid
-    console.log(token)
 
     if (!token){
         role = " "
@@ -70,14 +66,15 @@ function verifyToken (req, res, next){
         req.user = user
         if(user.role == "security"){
             security = user.username
+            console.log(security)
         }
         else if(user.role == "host"){
             host = user.username
+            console.log(host)
         }
         return next()
     });
 }
-
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -94,6 +91,57 @@ client.connect().then(res=>{
         console.log("Welcome to visitor managment system")
     }
 })
+
+async function login(Username,Password){  //user and host login
+
+    const option={projection:{password:0}}  //pipeline to project usernamne and email
+
+    const result = await client.db("user").collection("host").findOne({
+        $and:[
+            {username:{$eq:Username}},
+            {password:{$eq:Password}}
+            ]
+        },option)
+
+        if(result){
+            t = 's'
+            host = result.username
+            console.log(result)
+            console.log("Successfully Login")
+            role = "host"
+            create_jwt (result)
+            return result
+            
+    }
+        else {
+            const option={projection:{password:0}}  //pipeline to project usernamne and email
+
+            const result = await client.db("user").collection("security").findOne({
+                $and:[
+                    {username:{$eq:Username}},
+                    {password:{$eq:Password}}
+                    ]
+        },option)
+
+            if(result){
+                t = 's'
+                security = result.username
+                console.log(result)
+                console.log("Successfully Login")
+                role = "security"
+                create_jwt (result)
+                return result
+                
+                
+        }
+            else{
+                t = 'e'
+                console.log("User not found or password error")
+                return "User not found or password error"
+                
+        }
+    } 
+}
 
 async function registerVisitor(regIC,regUsername,regPassword,regEmail,regRole,regLast){  //register visitor
    
@@ -153,59 +201,6 @@ async function registerHost(regIC,regUsername,regPassword,regEmail,regRole){  //
     }
 }
 
-var t
-
-async function login(Username,Password){  //user and host login
-
-    const option={projection:{password:0}}  //pipeline to project usernamne and email
-
-    const result = await client.db("user").collection("host").findOne({
-        $and:[
-            {username:{$eq:Username}},
-            {password:{$eq:Password}}
-            ]
-        },option)
-
-        if(result){
-            t = 's'
-            host = result.username
-            console.log(result)
-            console.log("Successfully Login")
-            role = "host"
-            create_jwt (result)
-            return result
-            
-    }
-        else {
-            const option={projection:{password:0}}  //pipeline to project usernamne and email
-
-            const result = await client.db("user").collection("security").findOne({
-                $and:[
-                    {username:{$eq:Username}},
-                    {password:{$eq:Password}}
-                    ]
-        },option)
-
-            if(result){
-                t = 's'
-                security = result.username
-                console.log(result)
-                console.log("Successfully Login")
-                role = "security"
-                create_jwt (result)
-                return result
-                
-                
-        }
-            else{
-                t = 'e'
-                console.log("User not found or password error")
-                return "User not found or password error"
-                
-        }
-    } 
-}
-
 async function deleteVisitorAcc(Username){  //delete visitor acc
     const result = await client.db("user").collection("visitor").deleteOne({
         username:{$eq:Username}
@@ -241,53 +236,6 @@ async function deleteHostAcc(Username){  //delete host acc
         return "The account you was tried to delete doesn't exist"
     }
 }
-
-// async function updateVisitorPass(regPassword){  //change only when password is different
-//     result = await client.db("user").collection("visitor").findOne ({username:{$eq:visitor}})
-
-//     if (result.password != regPassword){
-//         await client.db("user").collection("visitor").updateOne({
-//             username:{$eq:visitor}
-//         },{$set:{password:regPassword}})
-
-//         let data = "Password "+visitor+" is successfully updated"
-//         return data
-//     }
-//     else
-//         return "Same password cannot be applied"
-// }        
-
-// async function updateHostPass(regPassword){
-
-//     result = await client.db("user").collection("host").findOne ({username:{$eq:host}})
-
-//     if (result.password != regPassword){
-//         await client.db("user").collection("host").updateOne({
-//             username:{$eq:host}
-//         },{$set:{password:regPassword}})
-
-//         let data= "Password "+host+" is successfully updated"
-//         return data
-//     }
-//     else
-//         return "Same password cannot be applied"
-// }
-
-// async function updateSecurityPass(regPassword){
-
-//     result = await client.db("user").collection("security").findOne ({username:{$eq:security}})
-
-//     if (result.password != regPassword){
-//         await client.db("user").collection("security").updateOne({
-//             username:{$eq:security}
-//         },{$set:{password:regPassword}})
-
-//         let data= "Password "+security+" is successfully updated"
-//         return data
-//     }
-//     else
-//         return "Same password cannot be applied"
-// }
 
 async function addVisitor(visitorIC,visitorName,phoneNumber,companyName,date,time){
     //to check whether there is same visitor in array
@@ -353,7 +301,6 @@ async function searchVisitor(IC){
 }
 
 //HTTP login method
-
 app.post('/login', async(req, res) => {   //login
     cookie = getcookie(req);
     let resp = await login(req.body.username,req.body.password)
@@ -372,47 +319,7 @@ app.post('/login', async(req, res) => {   //login
     res.end()
 })
 
-
-//visitor HTTP methods    
-        
-/*app.post('/login/visitor', async(req, res) => {   //login
-    res.send(await login(req.body.username,req.body.password))
-})*/
-
-/*app.post('/login/visitor/updatePassword', async(req, res) => {   //login
-    console.log(role)
-    if ((role == "visitor")){
-        res.send (await updateVisitorPass(req.body.password))
-    }
-    else
-        res.send ("You are not a visitor")
-        console.log ("You are not a visitor")
-})*/
-
-/*app.get('/login/visitor/logout', (req, res) => {
-    if ((role == "visitor")){
-        role = "NULL"
-        res.clearCookie("ssesid").send("You have log out")
-    }
-    else
-        res.send ("You had log out")
-        console.log ("You had log out")
-})*/
-    
-//host http method 
-
-/*app.post('/login/host', async(req, res) => {   //login  
-    res.send(await login(req.body.username,req.body.password))
-})*/
-
-/*app.post('/login/host/updatePassword', async(req, res) => {   //login
-    if ((role == "host")){
-        res.send(await updateHostPass(req.body.password))
-    }
-    else
-        res.send ("You are not a host") 
-})*/
-
+//host HTTP methods    
 app.post('/login/host/search',verifyToken, async(req, res) => {   //look up visitor details
     //console.log(req.cookies.ssesid)
     if ((role == "host"))
@@ -438,27 +345,8 @@ app.post('/login/host/removeVisitor',verifyToken, (req, res) => {   //remove vis
     else
         console.log (" ")
 })
-
-/*app.get('/login/host/logout', (req, res) => { 
-    if ((role == "host")){
-        role = "NULL"
-        res.clearCookie("ssesid").send("You have log out")
-    }
-    else
-        res.send ("You had log out")
-        console.log ("You had log out")
-})*/
     
 //security http mehtods    
-
-/*app.post('/login/security/updatePassword', async(req, res) => {   //login
-    if ((role == "security")){
-        res.send(await updateSecurityPass(req.body.password))
-    }
-    else
-        res.send ("You are not a security") 
-})*/
-
 app.post("/login/security/deleteHost" , verifyToken, async(req, res) => {  //delete host
     if ((role == "security"))
         res.send(await deleteHostAcc(req.body.username))
@@ -487,22 +375,10 @@ app.post("/login/security/register/host" , verifyToken, async(req, res) => {  //
         res.send (" ")     
 })
 
-/*app.get('/login/security/logout', (req, res) => {
-    if ((role == "security")){
-        role = "NULL"
-        res.clearCookie("ssesid").send("You have log out")
-    }
-    else
-        res.send ("You had log out")
-        console.log ("You had log out")
-})*/
-
 app.get('/logout', (req, res) => {
     role = "NULL"
     res.clearCookie("ssesid").send("You have log out")
 })
-
-
 
 
 /**
@@ -712,3 +588,114 @@ app.get('/logout', (req, res) => {
  *        200:
  *          description: OK
  */
+
+// async function updateVisitorPass(regPassword){  //change only when password is different
+//     result = await client.db("user").collection("visitor").findOne ({username:{$eq:visitor}})
+
+//     if (result.password != regPassword){
+//         await client.db("user").collection("visitor").updateOne({
+//             username:{$eq:visitor}
+//         },{$set:{password:regPassword}})
+
+//         let data = "Password "+visitor+" is successfully updated"
+//         return data
+//     }
+//     else
+//         return "Same password cannot be applied"
+// }        
+
+// async function updateHostPass(regPassword){
+
+//     result = await client.db("user").collection("host").findOne ({username:{$eq:host}})
+
+//     if (result.password != regPassword){
+//         await client.db("user").collection("host").updateOne({
+//             username:{$eq:host}
+//         },{$set:{password:regPassword}})
+
+//         let data= "Password "+host+" is successfully updated"
+//         return data
+//     }
+//     else
+//         return "Same password cannot be applied"
+// }
+
+// async function updateSecurityPass(regPassword){
+
+//     result = await client.db("user").collection("security").findOne ({username:{$eq:security}})
+
+//     if (result.password != regPassword){
+//         await client.db("user").collection("security").updateOne({
+//             username:{$eq:security}
+//         },{$set:{password:regPassword}})
+
+//         let data= "Password "+security+" is successfully updated"
+//         return data
+//     }
+//     else
+//         return "Same password cannot be applied"
+// }
+
+// app.post('/login/visitor', async(req, res) => {   //login
+//     res.send(await login(req.body.username,req.body.password))
+// })
+
+// app.post('/login/visitor/updatePassword', async(req, res) => {   //login
+//     console.log(role)
+//     if ((role == "visitor")){
+//         res.send (await updateVisitorPass(req.body.password))
+//     }
+//     else
+//         res.send ("You are not a visitor")
+//         console.log ("You are not a visitor")
+// })
+
+// app.get('/login/visitor/logout', (req, res) => {
+//     if ((role == "visitor")){
+//         role = "NULL"
+//         res.clearCookie("ssesid").send("You have log out")
+//     }
+//     else
+//         res.send ("You had log out")
+//         console.log ("You had log out")
+// })
+    
+// app.post('/login/host', async(req, res) => {   //login  
+//     res.send(await login(req.body.username,req.body.password))
+// })
+
+// app.post('/login/host/updatePassword', async(req, res) => {   //login
+//     if ((role == "host")){
+//         res.send(await updateHostPass(req.body.password))
+//     }
+//     else
+//         res.send ("You are not a host") 
+// })
+
+// app.get('/login/host/logout', (req, res) => { 
+//     if ((role == "host")){
+//         role = "NULL"
+//         res.clearCookie("ssesid").send("You have log out")
+//     }
+//     else
+//         res.send ("You had log out")
+//         console.log ("You had log out")
+// })
+
+// app.post('/login/security/updatePassword', async(req, res) => {   //login
+//     if ((role == "security")){
+//         res.send(await updateSecurityPass(req.body.password))
+//     }
+//     else
+//         res.send ("You are not a security") 
+// })
+
+// app.get('/login/security/logout', (req, res) => {
+//     if ((role == "security")){
+//         role = "NULL"
+//         res.clearCookie("ssesid").send("You have log out")
+//     }
+//     else
+//         res.send ("You had log out")
+//         console.log ("You had log out")
+// })
