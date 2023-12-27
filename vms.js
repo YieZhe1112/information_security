@@ -48,9 +48,14 @@ function create_jwt (payload){
     return 
 }
 
+function getcookie(req) {
+    var cookie = req.headers.cookie;
+    // user=someone; session=mySessionID
+    return cookie
+}
 
 function verifyToken (req, res, next){
-    const token = req.cookies.ssesid;
+    const token = getcookie(req);
     if (!token){
         return next()
     }
@@ -362,8 +367,15 @@ async function searchVisitor(IC){
 //HTTP login method
 
 app.post('/login', async(req, res) => {   //login
-    let resp = await login(req.body.username,req.body.password)
-    res.cookie("ssesid", jwt_token, {httpOnly: true}).send(resp)
+    var cookie = getcookie(req);
+
+    if(cookie == null){
+        let resp = await login(req.body.username,req.body.password)
+        res.cookie("ssesid", jwt_token, {httpOnly: true}).send(resp)
+    }
+    else{
+        res.send("")
+    }
 })
 
 
