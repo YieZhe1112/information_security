@@ -22,12 +22,9 @@ const swaggerSpec = swaggerJsdoc (options)
 
 app.use(express.json())
 app.use(cookieParser())
+app.use(express.urlencoded({extended:true}))
 
 app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));	//localhost behind add this /api-docs
-app.get("/api-docs/", (req, res) => {
-    res.clearCookie("ssesid")
-})
-
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
     
@@ -42,6 +39,7 @@ global.host
 global.role
 
 var jwt_token
+var cookie
 
 function create_jwt (payload){
     jwt_token = jwt.sign(payload, 'super_secret');
@@ -49,14 +47,16 @@ function create_jwt (payload){
 }
 
 function getcookie(req) {
-    var cookie = req.headers.ssesid;
-    // user=someone; session=mySessionID
-    return cookie
+    var c = req.cookies.ssesid;
+    return c
 }
 
 function verifyToken (req, res, next){
-    const token = getcookie(req);
+    let token = req.cookies.ssesid;
+    console.log(req.cookies.ssesid)
+
     if (!token){
+        token_state = 0;
         return next()
     }
         
@@ -64,6 +64,7 @@ function verifyToken (req, res, next){
         if (err){
             return next()
         }
+
         req.user = user;
         return next()
     });
@@ -367,9 +368,9 @@ async function searchVisitor(IC){
 //HTTP login method
 
 app.post('/login', async(req, res) => {   //login
-    var cookie = getcookie(req);
-
+    cookie = getcookie(req);
     if(cookie == null){
+        
         let resp = await login(req.body.username,req.body.password)
         res.cookie("ssesid", jwt_token, {httpOnly: true}).send(resp)
     }
