@@ -618,27 +618,6 @@ app.post('/visitorRetrivePass', async(req, res) => {   //retrive pass
 
 /**
  * @swagger
- *  /login/security/deleteVisitor:
- *    post:
- *      tags:
- *      - Security
- *      description: Delete visitor
- *      requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                username:
- *                  type: string
- *      responses:
- *        200:
- *          description: OK
- */
-
-/**
- * @swagger
  *  /logout:
  *    get:
  *      tags:
