@@ -30,7 +30,7 @@ app.get("/api-docs/", (req, res) => {
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
-    token_state = 0
+    
  })
 
 
@@ -42,7 +42,6 @@ global.host
 global.role
 
 var jwt_token
-var token_state = 0
 
 function create_jwt (payload){
     jwt_token = jwt.sign(payload, 'super_secret');
@@ -363,17 +362,8 @@ async function searchVisitor(IC){
 //HTTP login method
 
 app.post('/login', async(req, res) => {   //login
-    if(token_state == 0){
-        let resp = await login(req.body.username,req.body.password)
-        res.cookie("ssesid", jwt_token, {httpOnly: true}).send(resp)
-        token_state = 1;
-    }
-    else{
-        res.send("  ")
-    }
-    
-    
-    
+    let resp = await login(req.body.username,req.body.password)
+    res.cookie("ssesid", jwt_token, {httpOnly: true}).send(resp)
 })
 
 
@@ -397,7 +387,6 @@ app.get('/login/visitor/logout', (req, res) => {
     if ((role == "visitor")){
         role = "NULL"
         res.clearCookie("ssesid").send("You have log out")
-        token_state = 0
     }
     else
         res.send ("You had log out")
@@ -447,7 +436,6 @@ app.get('/login/host/logout', (req, res) => {
     if ((role == "host")){
         role = "NULL"
         res.clearCookie("ssesid").send("You have log out")
-        token_state = 0
     }
     else
         res.send ("You had log out")
@@ -496,7 +484,6 @@ app.get('/login/security/logout', (req, res) => {
     if ((role == "security")){
         role = "NULL"
         res.clearCookie("ssesid").send("You have log out")
-        token_state = 0
     }
     else
         res.send ("You had log out")
