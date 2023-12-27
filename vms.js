@@ -5,7 +5,6 @@ const app = express()
 const port = process.env.PORT || 3000;
 const swaggerUi = require ("swagger-ui-express")
 const swaggerJsdoc = require("swagger-jsdoc")
-const swaggerSpec = swaggerJsdoc (options)
 
 const options = {
     definition: {
@@ -17,6 +16,8 @@ const options = {
     },
     apis: ["./vms.js"],		//depends on your swagger command file
 };
+
+const swaggerSpec = swaggerJsdoc (options)
 
 app.use(express.json())
 app.use(cookieParser())
