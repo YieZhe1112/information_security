@@ -1,9 +1,11 @@
 const express = require('express')
+const jwt = require("jsonwebtoken")
+const cookieParser = require("cookie-parser")
 const app = express()
 const port = process.env.PORT || 3000;
 
-const swaggerUi = require ("swagger-ui-express");
-const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerUi = require ("swagger-ui-express")
+const swaggerJsdoc = require("swagger-jsdoc")
 
 const options = {
     definition: {
@@ -16,22 +18,53 @@ const options = {
     apis: ["./vms.js"],		//depends on your swagger command file
 };
 
-const swaggerSpec = swaggerJsdoc (options);
+const swaggerSpec = swaggerJsdoc (options)
 
-app.use(express.json());
+app.use(express.json())
+app.use(cookieParser())
+
 app.use("/api-docs", swaggerUi.serve,swaggerUi.setup(swaggerSpec));	//localhost behind add this /api-docs
+app.get("/api-docs/", (req, res) => {
+    res.clearCookie("ssesid")
+})
+
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
+    token_state = 0
  })
 
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://s2s3a:abc1234@record.55pqast.mongodb.net/?retryWrites=true&w=majority";
 
-//global variables
-global.l = "true"   
+//global variables  
 global.host
 global.role
+
+var jwt_token
+var token_state = 0
+
+function create_jwt (payload){
+    jwt_token = jwt.sign(payload, 'super_secret');
+    return 
+}
+
+
+function verifyToken (req, res, next){
+    const token = req.cookies.ssesid;
+    if (!token){
+        return next()
+    }
+        
+    const user = jwt.verify (token, 'super_secret', (err,user) => {
+        if (err){
+            return next()
+        }
+        req.user = user;
+        return next()
+    });
+}
+
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -44,8 +77,8 @@ const client = new MongoClient(uri, {
 
 client.connect().then(res=>{
     if (res){
+        
         console.log("Welcome to visitor managment system")
-        l = "false"
     }
 })
 
@@ -132,8 +165,8 @@ async function login(Username,Password){  //user and host login
         console.log(result)
         console.log("Successfully Login")
         role = "visitor"
+        create_jwt (result)
         return result
-        //details(result.role)
     }
     else {
         const option={projection:{password:0}}  //pipeline to project usernamne and email
@@ -149,10 +182,9 @@ async function login(Username,Password){  //user and host login
             host = result.username
             console.log(result)
             console.log("Successfully Login")
-            l = "true"
             role = "host"
+            create_jwt (result)
             return result
-            //details(result.role)
             
         }
         else {
@@ -169,10 +201,9 @@ async function login(Username,Password){  //user and host login
                 security = result.username
                 console.log(result)
                 console.log("Successfully Login")
-                l = "true"
                 role = "security"
+                create_jwt (result)
                 return result
-                //details(result.role)
                 
             }
             else{
@@ -332,7 +363,17 @@ async function searchVisitor(IC){
 //HTTP login method
 
 app.post('/login', async(req, res) => {   //login
-    res.send(await login(req.body.username,req.body.password))
+    if(token_state == 0){
+        let resp = await login(req.body.username,req.body.password)
+        res.cookie("ssesid", jwt_token, {httpOnly: true}).send(resp)
+        token_state = 1;
+    }
+    else{
+        res.send("  ")
+    }
+    
+    
+    
 })
 
 
@@ -342,7 +383,7 @@ app.post('/login', async(req, res) => {   //login
     res.send(await login(req.body.username,req.body.password))
 })*/
 
-app.post('/login/visitor/updatePassword', async(req, res) => {   //login
+/*app.post('/login/visitor/updatePassword', async(req, res) => {   //login
     console.log(role)
     if ((role == "visitor")){
         res.send (await updateVisitorPass(req.body.password))
@@ -350,13 +391,13 @@ app.post('/login/visitor/updatePassword', async(req, res) => {   //login
     else
         res.send ("You are not a visitor")
         console.log ("You are not a visitor")
-})
+})*/
 
 app.get('/login/visitor/logout', (req, res) => {
     if ((role == "visitor")){
         role = "NULL"
-        res.send("You have successfully log out")
-        console.log("You have successfully log out")
+        res.clearCookie("ssesid").send("You have log out")
+        token_state = 0
     }
     else
         res.send ("You had log out")
@@ -369,22 +410,22 @@ app.get('/login/visitor/logout', (req, res) => {
     res.send(await login(req.body.username,req.body.password))
 })*/
 
-app.post('/login/host/updatePassword', async(req, res) => {   //login
+/*app.post('/login/host/updatePassword', async(req, res) => {   //login
     if ((role == "host")){
         res.send(await updateHostPass(req.body.password))
     }
     else
         res.send ("You are not a host") 
-})
+})*/
 
-app.post('/login/host/search', async(req, res) => {   //look up visitor details
+app.post('/login/host/search',verifyToken, async(req, res) => {   //look up visitor details
     if ((role == "host"))
         res.send (await searchVisitor(req.body._id))
     else
         res.send ("You are not a host")
 })
 
-app.post('/login/host/addVisitor', async (req, res) => {   //add visitor
+app.post('/login/host/addVisitor',verifyToken, async (req, res) => {   //add visitor
     if ((role == "host")){
         let response = await addVisitor(req.body._id,req.body.visitorName,req.body.phoneNumber,req.body.companyName,req.body.date,req.body.time)
         res.send (response)
@@ -393,7 +434,7 @@ app.post('/login/host/addVisitor', async (req, res) => {   //add visitor
         console.log ("You are not a host")
 })
 
-app.post('/login/host/removeVisitor', (req, res) => {   //remove visitor
+app.post('/login/host/removeVisitor',verifyToken, (req, res) => {   //remove visitor
     if ((role == "host")){
         let response = removeVisitor(req.body.visitorName,req.body.date,req.body.time)
         res.send (response)
@@ -405,8 +446,8 @@ app.post('/login/host/removeVisitor', (req, res) => {   //remove visitor
 app.get('/login/host/logout', (req, res) => { 
     if ((role == "host")){
         role = "NULL"
-        res.send("You have successfully log out")
-        console.log("You have successfully log out")
+        res.clearCookie("ssesid").send("You have log out")
+        token_state = 0
     }
     else
         res.send ("You had log out")
@@ -415,36 +456,36 @@ app.get('/login/host/logout', (req, res) => {
     
 //security http mehtods    
 
-app.post('/login/security/updatePassword', async(req, res) => {   //login
+/*app.post('/login/security/updatePassword', async(req, res) => {   //login
     if ((role == "security")){
         res.send(await updateSecurityPass(req.body.password))
     }
     else
         res.send ("You are not a security") 
-})
+})*/
 
-app.post("/login/security/deleteHost" , async(req, res) => {  //delete host
+app.post("/login/security/deleteHost" , verifyToken, async(req, res) => {  //delete host
     if ((role == "security"))
         res.send(await deleteHostAcc(req.body.username))
     else
         res.send ("You are not a security")
 })
 
-app.post("/login/security/deleteVisitor" , async(req, res) => {  //delete visitor
+app.post("/login/security/deleteVisitor" , verifyToken, async(req, res) => {  //delete visitor
     if ((role == "security"))
         res.send(await deleteVisitorAcc(req.body.username))
     else
         res.send ("You are not a security")
 })
 
-app.post("/login/security/register/visitor" , async (req, res) => {  //register visitor
+app.post("/login/security/register/visitor" , verifyToken, async (req, res) => {  //register visitor
     if ((role == "security"))
         res.send(await registerVisitor(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role,req.body.lastCheckinTime))
     else
         res.send ("You are not a security")
 })
         
-app.post("/login/security/register/host" , async(req, res) => {  //register host
+app.post("/login/security/register/host" , verifyToken, async(req, res) => {  //register host
     if ((role == "security"))
         res.send(await registerHost(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role))    
     else
@@ -454,8 +495,8 @@ app.post("/login/security/register/host" , async(req, res) => {  //register host
 app.get('/login/security/logout', (req, res) => {
     if ((role == "security")){
         role = "NULL"
-        res.send("You have successfully log out")
-        console.log("You have successfully log out")
+        res.clearCookie("ssesid").send("You have log out")
+        token_state = 0
     }
     else
         res.send ("You had log out")
