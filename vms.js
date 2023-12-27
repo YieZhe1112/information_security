@@ -40,6 +40,7 @@ global.role
 
 var jwt_token
 var cookie
+var state = 0
 
 function create_jwt (payload){
     jwt_token = jwt.sign(payload, 'super_secret');
@@ -47,25 +48,25 @@ function create_jwt (payload){
 }
 
 function getcookie(req) {
-    var c = req.cookies.ssesid;
+    var c = req.cookies.ssesid
     return c
 }
 
 function verifyToken (req, res, next){
-    let token = req.cookies.ssesid;
-    console.log(req.cookies.ssesid)
+    var token = req.cookies.ssesid
 
     if (!token){
-        token_state = 0;
+        role = " "
         return next()
     }
         
     const user = jwt.verify (token, 'super_secret', (err,user) => {
         if (err){
+            role = " "
             return next()
         }
-
-        req.user = user;
+        
+        req.user = user
         return next()
     });
 }
@@ -145,6 +146,8 @@ async function registerHost(regIC,regUsername,regPassword,regEmail,regRole){  //
     }
 }
 
+var t
+
 async function login(Username,Password){  //user and host login
 
     const option={projection:{password:0}}  //pipeline to project usernamne and email
@@ -166,6 +169,7 @@ async function login(Username,Password){  //user and host login
     })
 
     if(result){
+        t = 's'
         visitor = result.username
         console.log(result)
         console.log("Successfully Login")
@@ -184,6 +188,7 @@ async function login(Username,Password){  //user and host login
         },option)
 
         if(result){
+            t = 's'
             host = result.username
             console.log(result)
             console.log("Successfully Login")
@@ -203,6 +208,7 @@ async function login(Username,Password){  //user and host login
             },option)
 
             if(result){
+                t = 's'
                 security = result.username
                 console.log(result)
                 console.log("Successfully Login")
@@ -210,10 +216,13 @@ async function login(Username,Password){  //user and host login
                 create_jwt (result)
                 return result
                 
+                
             }
             else{
+                t = 'e'
                 console.log("User not found or password error")
                 return "User not found or password error"
+                
             }
         } 
     }
@@ -255,52 +264,52 @@ async function deleteHostAcc(Username){  //delete host acc
     }
 }
 
-async function updateVisitorPass(regPassword){  //change only when password is different
-    result = await client.db("user").collection("visitor").findOne ({username:{$eq:visitor}})
+// async function updateVisitorPass(regPassword){  //change only when password is different
+//     result = await client.db("user").collection("visitor").findOne ({username:{$eq:visitor}})
 
-    if (result.password != regPassword){
-        await client.db("user").collection("visitor").updateOne({
-            username:{$eq:visitor}
-        },{$set:{password:regPassword}})
+//     if (result.password != regPassword){
+//         await client.db("user").collection("visitor").updateOne({
+//             username:{$eq:visitor}
+//         },{$set:{password:regPassword}})
 
-        let data = "Password "+visitor+" is successfully updated"
-        return data
-    }
-    else
-        return "Same password cannot be applied"
-}        
+//         let data = "Password "+visitor+" is successfully updated"
+//         return data
+//     }
+//     else
+//         return "Same password cannot be applied"
+// }        
 
-async function updateHostPass(regPassword){
+// async function updateHostPass(regPassword){
 
-    result = await client.db("user").collection("host").findOne ({username:{$eq:host}})
+//     result = await client.db("user").collection("host").findOne ({username:{$eq:host}})
 
-    if (result.password != regPassword){
-        await client.db("user").collection("host").updateOne({
-            username:{$eq:host}
-        },{$set:{password:regPassword}})
+//     if (result.password != regPassword){
+//         await client.db("user").collection("host").updateOne({
+//             username:{$eq:host}
+//         },{$set:{password:regPassword}})
 
-        let data= "Password "+host+" is successfully updated"
-        return data
-    }
-    else
-        return "Same password cannot be applied"
-}
+//         let data= "Password "+host+" is successfully updated"
+//         return data
+//     }
+//     else
+//         return "Same password cannot be applied"
+// }
 
-async function updateSecurityPass(regPassword){
+// async function updateSecurityPass(regPassword){
 
-    result = await client.db("user").collection("security").findOne ({username:{$eq:security}})
+//     result = await client.db("user").collection("security").findOne ({username:{$eq:security}})
 
-    if (result.password != regPassword){
-        await client.db("user").collection("security").updateOne({
-            username:{$eq:security}
-        },{$set:{password:regPassword}})
+//     if (result.password != regPassword){
+//         await client.db("user").collection("security").updateOne({
+//             username:{$eq:security}
+//         },{$set:{password:regPassword}})
 
-        let data= "Password "+security+" is successfully updated"
-        return data
-    }
-    else
-        return "Same password cannot be applied"
-}
+//         let data= "Password "+security+" is successfully updated"
+//         return data
+//     }
+//     else
+//         return "Same password cannot be applied"
+// }
 
 async function addVisitor(visitorIC,visitorName,phoneNumber,companyName,date,time){
     //to check whether there is same visitor in array
@@ -369,14 +378,20 @@ async function searchVisitor(IC){
 
 app.post('/login', async(req, res) => {   //login
     cookie = getcookie(req);
+    let resp = await login(req.body.username,req.body.password)
     if(cookie == null){
-        
-        let resp = await login(req.body.username,req.body.password)
-        res.cookie("ssesid", jwt_token, {httpOnly: true}).send(resp)
+        if(t == 's'){
+            res.cookie("ssesid", jwt_token, {httpOnly: true}).send(resp)
+
+        }
+        else{
+            res.send(resp)
+        }
     }
     else{
         res.send("")
     }
+    res.end()
 })
 
 
@@ -421,10 +436,11 @@ app.post('/login', async(req, res) => {   //login
 })*/
 
 app.post('/login/host/search',verifyToken, async(req, res) => {   //look up visitor details
+    //console.log(req.cookies.ssesid)
     if ((role == "host"))
         res.send (await searchVisitor(req.body._id))
     else
-        res.send ("You are not a host")
+        res.send (" ")
 })
 
 app.post('/login/host/addVisitor',verifyToken, async (req, res) => {   //add visitor
@@ -433,7 +449,7 @@ app.post('/login/host/addVisitor',verifyToken, async (req, res) => {   //add vis
         res.send (response)
     }
     else
-        console.log ("You are not a host")
+        console.log (" ")
 })
 
 app.post('/login/host/removeVisitor',verifyToken, (req, res) => {   //remove visitor
@@ -442,7 +458,7 @@ app.post('/login/host/removeVisitor',verifyToken, (req, res) => {   //remove vis
         res.send (response)
     }
     else
-        console.log ("You are not a host")
+        console.log (" ")
 })
 
 /*app.get('/login/host/logout', (req, res) => { 
@@ -469,28 +485,28 @@ app.post("/login/security/deleteHost" , verifyToken, async(req, res) => {  //del
     if ((role == "security"))
         res.send(await deleteHostAcc(req.body.username))
     else
-        res.send ("You are not a security")
+        res.send (" ")
 })
 
 app.post("/login/security/deleteVisitor" , verifyToken, async(req, res) => {  //delete visitor
     if ((role == "security"))
         res.send(await deleteVisitorAcc(req.body.username))
     else
-        res.send ("You are not a security")
+        res.send (" ")
 })
 
 app.post("/login/security/register/visitor" , verifyToken, async (req, res) => {  //register visitor
     if ((role == "security"))
         res.send(await registerVisitor(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role,req.body.lastCheckinTime))
     else
-        res.send ("You are not a security")
+        res.send (" ")
 })
         
 app.post("/login/security/register/host" , verifyToken, async(req, res) => {  //register host
     if ((role == "security"))
         res.send(await registerHost(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role))    
     else
-        res.send ("You are not a security")     
+        res.send (" ")     
 })
 
 /*app.get('/login/security/logout', (req, res) => {
