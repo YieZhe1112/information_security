@@ -34,7 +34,7 @@ const uri = "mongodb+srv://s2s3a:abc1234@record.55pqast.mongodb.net/?retryWrites
 
 //global variables  
 global.host
-global.role
+var role = 'null'
 
 var jwt_token
 var cookie
@@ -67,11 +67,11 @@ function verifyToken (req, res, next){
         req.user = user
         if(user.role == "security"){
             security = user.username
-            console.log(security)
+            //console.log(security)
         }
         else if(user.role == "host"){
             host = user.username
-            console.log(host)
+            //console.log(host)
         }
         return next()
     });
@@ -95,7 +95,7 @@ client.connect().then(res=>{
 
 async function login(Username,Password){  //user and host login
 
-    const option={projection:{password:0}}  //pipeline to project usernamne and email
+    const option={projection:{password:0,host:0,role:0,visitor:0, admin:0}}  //pipeline to project usernamne and email
 
     const result = await client.db("user").collection("host").findOne({
         $and:[
@@ -107,15 +107,15 @@ async function login(Username,Password){  //user and host login
         if(result){
             t = 's'
             host = result.username
-            console.log(result)
-            console.log("Successfully Login")
+            //console.log(result)
+            //console.log("Successfully Login")
             role = "host"
             create_jwt (result)
             return result
             
     }
         else {
-            const option={projection:{password:0}}  //pipeline to project usernamne and email
+            const option={projection:{password:0,host:0,role:0,visitor:0,admin:0}}  //pipeline to project usernamne and email
 
             const result = await client.db("user").collection("security").findOne({
                 $and:[
@@ -127,8 +127,8 @@ async function login(Username,Password){  //user and host login
             if(result){
                 t = 's'
                 security = result.username
-                console.log(result)
-                console.log("Successfully Login")
+                //console.log(result)
+                //console.log("Successfully Login")
                 role = "security"
                 create_jwt (result)
                 return result
@@ -137,11 +137,68 @@ async function login(Username,Password){  //user and host login
         }
             else{
                 t = 'e'
-                console.log("User not found or password error")
+                //("User not found or password error")
                 return "User not found or password error"
                 
         }
     } 
+}
+
+var lock =0
+var LOCK = false
+
+async function admin(Username,ID,Password){  
+
+    //const option={projection:{password:0,host:0,role:0,visitor:0}}  //pipeline to project usernamne and email   
+    const result1 = await client.db("user").collection("security").findOne(
+        {admin:{$eq:"true"}
+    })
+    console.log(result1)
+
+    if(lock <2 && result1){
+        const result = await client.db("user").collection("admin").findOne({
+            $and:[
+                {username:{$eq:Username}},
+                {_id:{$eq:ID}},
+                {password:{$eq:Password}}
+                ]
+            })
+    
+            if(result){
+                lock=0
+                t = 's'
+                role = "admin"
+                create_jwt (result)
+                return result  
+            }
+            else{
+                t = 'e'
+                lock ++
+                //("User not found or password error")
+                return "User not found or password error"
+            }
+    }
+    else{
+        LOCK = true
+        await client.db("user").collection("security").updateOne({
+            role: "security"
+        },{$set:{admin:"false"}})
+
+        while(LOCK){
+            return "Your account has been lock, please contact security to activate the account"
+        }
+    }
+    lock ++
+}
+
+async function activateAdmin(admin){  
+    result = await client.db("user").collection("security").findOne ({username:{$eq:security}})
+
+    if (result){
+        await client.db("user").collection("security").updateOne({
+            role: "security"
+        },{$set:{admin:admin}})
+    }
 }
 
 async function registerVisitor(regIC,regUsername,regPassword,regEmail,regRole,regLast){  //register visitor
@@ -191,6 +248,7 @@ async function registerHost(regIC,regUsername,regPassword,regEmail,regRole){  //
         else{
             await client.db("user").collection("host").insertOne({
                 "_id":regIC,
+                "host":regUsername,
                 "username":regUsername,
                 "password":regPassword,
                 "email":regEmail,
@@ -212,7 +270,7 @@ async function deleteVisitorAcc(Username){  //delete visitor acc
     },{$pull:{visitor:{name:Username}}},{upsert:true})
 
     if(result.deletedCount == 1){
-        console.log(result)
+        //console.log(result)
         return "The account was successfully deleted"
     }
     else{
@@ -230,7 +288,7 @@ async function deleteHostAcc(Username){  //delete host acc
     },{$pull:{host:{name:Username}}},{upsert:true})
 
     if(result.deletedCount == 1){   //if the acc exists, delete the acc
-        console.log(result)
+        //console.log(result)
         return "The account was successfully deleted"
     }
     else{   
@@ -238,9 +296,10 @@ async function deleteHostAcc(Username){  //delete host acc
     }
 }
 
+
 async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
     //to check whether there is same visitor in array
-    console.log(host)
+    //console.log(host)
     // let filter = await client.db("user").collection("host").findOne({
     //     username:{$eq:host}
     // })
@@ -254,15 +313,15 @@ async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
         })
     
     if (result){
-        console.log ("The visitor you entered already in list or time is occupied")
-        console.log (result)
+        //console.log ("The visitor you entered already in list or time is occupied")
+        //console.log (result)
         return "The visitor you entered already in list or time is occupied"
     }
     else{
         await client.db("user").collection("host").updateOne({username: host},{
             $push:{visitor:{_id:_id,name:visitorName,phone:phoneNumber,company:companyName,date:date,time:time}}},{upsert:true})
-        console.log("The visitor is added successfully")
-        console.log(result)
+        //console.log("The visitor is added successfully")
+        //console.log(result)
         return "The visitor is added successfully"
     }
 }
@@ -282,29 +341,40 @@ async function removeVisitor(removeVisitor,removeDate,removeTime){
 
         
         //let data = "Visitor "+removeVisitor+" is successfully remove"
-        console.log("Visitor "+removeVisitor+" is successfully remove")
+        //console.log("Visitor "+removeVisitor+" is successfully remove")
         let data = "Visitor "+removeVisitor+" is successfully remove"
         return "data"
     }
     else
-        console.log("No appointment found")
+        //console.log("No appointment found")
         return "No appointment found"
 }
 
-async function searchVisitor(IC){
-    const option={projection:{password:0,role:0}}  //pipeline to project usernamne and email
+async function searchVisitor(_id){
+    //const option={projection:{password:0,role:0}}  //pipeline to project usernamne and email
+    const option={projection:{_id:0,username:0,password:0,email:0,role:0,host:0}}
 
-    const result = await client.db("user").collection("visitor").findOne({
-        _id:{$eq:IC}
+    const result = await client.db("user").collection("host").findOne({
+        $and:[
+            {host:{$eq:host}},
+            {visitor:{$elemMatch:{_id}}}
+            ]
     },option)
-    console.log(result)
-    return result
+
+    if(result){
+        //console.log(result)
+        return result
+    }
+    else{
+        return "No visitor found"
+    }
+    
 }
 
 async function retrivepass(username,_id,date,time){
     const result = await client.db("user").collection("host").findOne({
         $and:[
-            {username:{$eq:username}},
+            {host:{$eq:username}},
             {visitor:{$elemMatch:{_id}}},
             {visitor:{$elemMatch:{date}}},
             {visitor:{$elemMatch:{time}}}
@@ -312,16 +382,16 @@ async function retrivepass(username,_id,date,time){
     })
 
     if(result){
-        await client.db("user").collection("host").updateOne({username:{$eq:username}},{
+        await client.db("user").collection("host").updateOne({host:{$eq:username}},{
             $pull:{visitor:{_id:_id},visitor:{date:date}}},{upsert:true})
 
-        console.log("Successfully retrive pass")
+        //console.log("Successfully retrive pass")
         return "Successfully retrive pass"
         // console.log("Pass already retrived or not in the list")
         // return "Pass already retrived or not in the lits"
     }
     else{
-        console.log("Pass already retrived or not in the list")
+        //console.log("Pass already retrived or not in the list")
         return "Pass already retrived or not in the lits"
         // console.log("Successfully retrive pass")
         // return "Successfully retrive pass"
@@ -350,8 +420,10 @@ app.post('/login', async(req, res) => {   //login
 //host HTTP methods    
 app.post('/login/host/search',verifyToken, async(req, res) => {   //look up visitor details
     //console.log(req.cookies.ssesid)
-    if ((role == "host"))
-        res.send (await searchVisitor(req.body._id))
+    if ((role == "host")){
+        let resp = await searchVisitor(req.body._id)
+        res.send (resp)
+    }
     else
         res.send (" ")
 })
@@ -362,7 +434,8 @@ app.post('/login/host/addVisitor',verifyToken, async (req, res) => {   //add vis
         res.send (response)
     }
     else
-        console.log (" ")
+        res.send (" ")
+        //console.log (" ")
 })
 
 app.post('/login/host/removeVisitor',verifyToken, (req, res) => {   //remove visitor
@@ -371,10 +444,18 @@ app.post('/login/host/removeVisitor',verifyToken, (req, res) => {   //remove vis
         res.send (response)
     }
     else
-        console.log (" ")
+        res.send (" ")
+       //console.log (" ")
 })
     
 //security http mehtods    
+app.post("/login/security/activateAdmin" , verifyToken, async(req, res) => {  //delete host
+    if ((role == "security"))
+        res.send(await activateAdmin(req.body.admin))
+    else
+        res.send (" ")
+})
+
 app.post("/login/security/deleteHost" , verifyToken, async(req, res) => {  //delete host
     if ((role == "security"))
         res.send(await deleteHostAcc(req.body.username))
@@ -404,12 +485,30 @@ app.post("/login/security/register/host" , verifyToken, async(req, res) => {  //
 })
 
 app.get('/logout', (req, res) => {
-    role = "NULL"
+    role = "null"
     res.clearCookie("ssesid").send("You have log out")
 })
 
 app.post('/visitorRetrivePass', async(req, res) => {   //retrive pass
-    res.send(await retrivepass(req.body.username,req.body._id,req.body.date,req.body.time))
+    res.send(await retrivepass(req.body.host,req.body._id,req.body.date,req.body.time))
+})
+
+app.post('/login/admin', async(req, res) => {   //retrive pass
+    cookie = getcookie(req);
+    let resp = await admin(req.body.username,req.body._id,req.body.password)
+    if(cookie == null){
+        if(t == 's'){
+            res.cookie("ssesid", jwt_token, {httpOnly: true}).send(resp)
+
+        }
+        else{
+            res.send(resp)
+        }
+    }
+    else{
+        res.send("")
+    }
+    res.end()
 })
 
 
@@ -438,6 +537,31 @@ app.post('/visitorRetrivePass', async(req, res) => {   //retrive pass
 
 /**
  * @swagger
+ *  /login/admin:
+ *    post:
+ *      tags:
+ *      - Admin
+ *      description: Admin login
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                username:
+ *                  type: string
+ *                _id:
+ *                  type: string
+ *                password:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
  *  /visitorRetrivePass:
  *    post:
  *      tags:
@@ -450,7 +574,7 @@ app.post('/visitorRetrivePass', async(req, res) => {   //retrive pass
  *            schema:
  *              type: object
  *              properties:
- *                username:
+ *                host:
  *                  type: string
  *                _id:
  *                  type: string
@@ -535,6 +659,27 @@ app.post('/visitorRetrivePass', async(req, res) => {   //retrive pass
  *                date:
  *                  type: string
  *                time:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
+ *  /login/security/activateAdmin:
+ *    post:
+ *      tags:
+ *      - Security
+ *      description: Activate admin
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                admin:
  *                  type: string
  *      responses:
  *        200:
