@@ -175,7 +175,8 @@ async function admin(Username,ID,Password){
                 role = "admin"
                 Admin = result.username
                 create_jwt (result)
-                return result  
+                const result2 = await client.db("user").collection("host").find().toArray()
+                return result2  
             }
             else{
                 t = 'e'
@@ -340,21 +341,27 @@ async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
     }
 }
 
-async function removeVisitor(removeVisitor,removeDate,removeTime){
-    
-    const result = await client.db("user").collection("host").findOne({
+async function removeVisitor(name,date,time){
+
+    let result = await client.db("user").collection("host").findOne({
         $and:[
             {username:{$eq:host}},
-            {visitor:{$elemMatch:{removeVisitor}}},
-            {visitor:{$elemMatch:{removeDate}}},
-            {visitor:{$elemMatch:{removeTime}}}
+            {visitor:{$elemMatch:{name}}},
+            {visitor:{$elemMatch:{date}}},
+            {visitor:{$elemMatch:{time}}}
             ]
     })
-    console.log(host)
 
     if(result){
-        await client.db("user").collection("host").updateOne({username:{$eq:host}},{
-            $pull:{visitor:{name:removeVisitor},visitor:{date:removeDate},visitor:{time:removeTime}}},{upsert:true})
+        await client.db("user").collection("host").updateOne({
+            $and:[
+                {username:{$eq:host}},
+                {visitor:{$elemMatch:{name}}},
+                {visitor:{$elemMatch:{date}}},
+                {visitor:{$elemMatch:{time}}}
+                ]
+        },{
+            $pull:{visitor:{name:name},visitor:{time:time},visitor:{date:date}}},{upsert:true})
 
         return "Successfully remove visitor"
     }
@@ -362,6 +369,7 @@ async function removeVisitor(removeVisitor,removeDate,removeTime){
         return "Visitor not found"
     }
 }
+
 
 async function searchVisitor(_id){
     //const option={projection:{password:0,role:0}}  //pipeline to project usernamne and email
@@ -395,7 +403,14 @@ async function retrivepass(username,_id,date,time){
     })
 
     if(result){
-        await client.db("user").collection("host").updateOne({host:{$eq:username}},{
+        await client.db("user").collection("host").updateOne({
+            $and:[
+                {host:{$eq:username}},
+                {visitor:{$elemMatch:{_id}}},
+                {visitor:{$elemMatch:{date}}},
+                {visitor:{$elemMatch:{time}}}
+                ]
+        },{
             $pull:{visitor:{_id:_id},visitor:{time:time},visitor:{date:date}}},{upsert:true})
 
         //console.log("Successfully retrive pass")
@@ -456,9 +471,9 @@ app.post('/login/host/addVisitor',verifyToken, async (req, res) => {   //add vis
         //console.log (" ")
 })
 
-app.post('/login/host/removeVisitor',verifyToken, (req, res) => {   //remove visitor
+app.post('/login/host/removeVisitor',verifyToken, async (req, res) => {   //remove visitor
     if ((role == "host")){
-        let response = removeVisitor(req.body.visitorName,req.body.date,req.body.time)
+        let response = await removeVisitor(req.body.visitorName,req.body.date,req.body.time)
         res.send (response)
     }
     else
