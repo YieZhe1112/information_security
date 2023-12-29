@@ -68,14 +68,17 @@ function verifyToken (req, res, next){
         req.user = user
         if(user.role == "security"){
             security = user.username
+            return security
             //console.log(security)
         }
         else if(user.role == "host"){
             host = user.username
+            return host
             //console.log(host)
         }
         else if(user.role == "admin"){
             Admin = user.username
+            return Admin
             //console.log(host)
         }
         return next()
@@ -320,6 +323,7 @@ async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
     let result = await client.db("user").collection("host").findOne({
         // visitor:{$elemMatch:{_id}}},
         $and:[
+            {username:{$eq:host}},
             {visitor:{$elemMatch:{_id}}},
             {visitor:{$elemMatch:{date}}},
             {visitor:{$elemMatch:{time}}}
@@ -333,10 +337,10 @@ async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
         return "The visitor you entered already in list or time is occupied"
     }
     else{
-        await client.db("user").collection("host").updateOne({username: host},{
+        await client.db("user").collection("host").updateOne({username:{$eq:host}},{
             $push:{visitor:{_id:_id,name:visitorName,phone:phoneNumber,company:companyName,date:date,time:time}}},{upsert:true})
         //console.log("The visitor is added successfully")
-        //console.log(result)
+        console.log(host)
         return "The visitor is added successfully"
     }
 }
