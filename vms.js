@@ -218,6 +218,8 @@ async function activateAdmin(Username,ID){
         await client.db("user").collection("admin").updateOne({
             username: Username
         },{$set:{status:"true"}})
+        lock =0
+        LOCK = false
     }
 }
 
