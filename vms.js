@@ -352,27 +352,28 @@ async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
     }
 }
 
-async function removeVisitor(name,date,time){
+async function removeVisitor(_id,date,time){
 
     let result = await client.db("user").collection("host").findOne({
         $and:[
             {host:{$eq:name}},
-            {visitor:{$elemMatch:{name}}},
+            {visitor:{$elemMatch:{_id}}},
             {visitor:{$elemMatch:{date}}},
             {visitor:{$elemMatch:{time}}}
             ]
     })
+    console.log(result)
 
     if(result){
         await client.db("user").collection("host").updateOne({
             $and:[
                 {host:{$eq:name}},
-                {visitor:{$elemMatch:{name}}},
+                {visitor:{$elemMatch:{_id}}},
                 {visitor:{$elemMatch:{date}}},
                 {visitor:{$elemMatch:{time}}}
                 ]
         },{
-            $pull:{visitor:{name:name},visitor:{time:time},visitor:{date:date}}},{upsert:true})
+            $pull:{visitor:{_id:_id},visitor:{time:time},visitor:{date:date}}},{upsert:true})
 
         return "Successfully remove visitor"
     }
@@ -484,7 +485,7 @@ app.post('/login/host/addVisitor',verifyToken, async (req, res) => {   //add vis
 
 app.post('/login/host/removeVisitor',verifyToken, async (req, res) => {   //remove visitor
     if ((role == "host")){
-        let response = await removeVisitor(req.body.visitorName,req.body.date,req.body.time)
+        let response = await removeVisitor(req.body._id,req.body.date,req.body.time)
         res.send (response)
     }
     else
@@ -725,7 +726,7 @@ app.post('/login/admin', async(req, res) => {   //retrive pass
  *            schema:
  *              type: object
  *              properties:
- *                visitorName:
+ *                _id:
  *                  type: string
  *                date:
  *                  type: string
