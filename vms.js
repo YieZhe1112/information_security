@@ -35,6 +35,7 @@ const uri = "mongodb+srv://s2s3a:abc1234@record.55pqast.mongodb.net/?retryWrites
 //global variables  
 global.host
 var role = 'null'
+var Admin
 
 var jwt_token
 var cookie
@@ -71,6 +72,10 @@ function verifyToken (req, res, next){
         }
         else if(user.role == "host"){
             host = user.username
+            //console.log(host)
+        }
+        else if(user.role == "admin"){
+            Admin = user.username
             //console.log(host)
         }
         return next()
@@ -150,10 +155,10 @@ var LOCK = false
 async function admin(Username,ID,Password){  
 
     //const option={projection:{password:0,host:0,role:0,visitor:0}}  //pipeline to project usernamne and email   
-    const result1 = await client.db("user").collection("security").findOne(
-        {admin:{$eq:"true"}
+    const result1 = await client.db("user").collection("admin").findOne(
+        {status:{$eq:"true"}
     })
-    console.log(result1)
+    //console.log(result1)
 
     if(lock <2 && result1){
         const result = await client.db("user").collection("admin").findOne({
@@ -168,6 +173,7 @@ async function admin(Username,ID,Password){
                 lock=0
                 t = 's'
                 role = "admin"
+                Admin = result.username
                 create_jwt (result)
                 return result  
             }
@@ -180,9 +186,10 @@ async function admin(Username,ID,Password){
     }
     else{
         LOCK = true
-        await client.db("user").collection("security").updateOne({
-            role: "security"
-        },{$set:{admin:"false"}})
+        await client.db("user").collection("admin").updateOne({
+           username:Username
+        },{$set:{status:"false"}})
+        console.log(Admin)
 
         while(LOCK){
             return "Your account has been lock, please contact security to activate the account"
@@ -191,13 +198,19 @@ async function admin(Username,ID,Password){
     lock ++
 }
 
-async function activateAdmin(admin){  
-    result = await client.db("user").collection("security").findOne ({username:{$eq:security}})
+async function activateAdmin(Username,ID){  
+    result = await client.db("user").collection("admin").findOne ({
+        $and:[
+        {username:{$eq:Username}},
+        {_id:{$eq:ID}}
+        ]
+    })
+    //console.log(result)
 
     if (result){
-        await client.db("user").collection("security").updateOne({
-            role: "security"
-        },{$set:{admin:admin}})
+        await client.db("user").collection("admin").updateOne({
+            username: Username
+        },{$set:{status:"true"}})
     }
 }
 
@@ -307,6 +320,7 @@ async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
         // visitor:{$elemMatch:{_id}}},
         $and:[
             {visitor:{$elemMatch:{_id}}},
+            {visitor:{$elemMatch:{date}}},
             {visitor:{$elemMatch:{time}}}
             ]
     
@@ -328,26 +342,25 @@ async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
 
 async function removeVisitor(removeVisitor,removeDate,removeTime){
     
-    let result = await client.db("user").collection("visitor").findOne({username: removeVisitor, "host.name": host, "host.date":removeDate,"host.time":removeTime})
-    if (result){
-        await client.db("user").collection("host").updateOne({
-            username: host
-        },{$pull:{visitor:{name:removeVisitor},visitor:{date:removeDate},visitor:{time:removeTime}}},{upsert:true})
+    const result = await client.db("user").collection("host").findOne({
+        $and:[
+            {username:{$eq:host}},
+            {visitor:{$elemMatch:{removeVisitor}}},
+            {visitor:{$elemMatch:{removeDate}}},
+            {visitor:{$elemMatch:{removeTime}}}
+            ]
+    })
+    console.log(host)
 
-        
-        await client.db("user").collection("visitor").updateOne({
-            username: removeVisitor
-        },{$pull:{host:{name:host,date:removeDate,time:removeTime}}},{upsert:true})
+    if(result){
+        await client.db("user").collection("host").updateOne({username:{$eq:host}},{
+            $pull:{visitor:{name:removeVisitor},visitor:{date:removeDate},visitor:{time:removeTime}}},{upsert:true})
 
-        
-        //let data = "Visitor "+removeVisitor+" is successfully remove"
-        //console.log("Visitor "+removeVisitor+" is successfully remove")
-        let data = "Visitor "+removeVisitor+" is successfully remove"
-        return "data"
+        return "Successfully remove visitor"
     }
-    else
-        //console.log("No appointment found")
-        return "No appointment found"
+    else{
+        return "Visitor not found"
+    }
 }
 
 async function searchVisitor(_id){
@@ -383,7 +396,7 @@ async function retrivepass(username,_id,date,time){
 
     if(result){
         await client.db("user").collection("host").updateOne({host:{$eq:username}},{
-            $pull:{visitor:{_id:_id},visitor:{date:date}}},{upsert:true})
+            $pull:{visitor:{_id:_id},visitor:{time:time},visitor:{date:date}}},{upsert:true})
 
         //console.log("Successfully retrive pass")
         return "Successfully retrive pass"
@@ -415,6 +428,11 @@ app.post('/login', async(req, res) => {   //login
         res.send("")
     }
     res.end()
+})
+
+//Test
+app.post("/test/register/host" , verifyToken, async(req, res) => {  //register test host
+    res.send(await registerHost(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role))
 })
 
 //host HTTP methods    
@@ -451,7 +469,7 @@ app.post('/login/host/removeVisitor',verifyToken, (req, res) => {   //remove vis
 //security http mehtods    
 app.post("/login/security/activateAdmin" , verifyToken, async(req, res) => {  //delete host
     if ((role == "security"))
-        res.send(await activateAdmin(req.body.admin))
+        res.send(await activateAdmin(req.body.username,req.body._id))
     else
         res.send (" ")
 })
@@ -642,6 +660,33 @@ app.post('/login/admin', async(req, res) => {   //retrive pass
 
 /**
  * @swagger
+ *  /test/register/host:
+ *    post:
+ *      tags:
+ *      - Test
+ *      description: Register host
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                username:
+ *                  type: string
+ *                password:
+ *                  type: string
+ *                _id:
+ *                  type: string
+ *                email:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
  *  /login/host/removeVisitor:
  *    post:
  *      tags:
@@ -679,7 +724,9 @@ app.post('/login/admin', async(req, res) => {   //retrive pass
  *            schema:
  *              type: object
  *              properties:
- *                admin:
+ *                username:
+ *                  type: string
+ *                _id:
  *                  type: string
  *      responses:
  *        200:
