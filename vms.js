@@ -33,7 +33,8 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://s2s3a:abc1234@record.55pqast.mongodb.net/?retryWrites=true&w=majority";
 
 //global variables  
-global.host
+var Host
+var Security
 var role = 'null'
 var Admin
 
@@ -67,13 +68,13 @@ function verifyToken (req, res, next){
         
         req.user = user
         if(user.role == "security"){
-            security = user.username
-            return security
+            Security = user.username
+            return Security
             //console.log(security)
         }
         else if(user.role == "host"){
-            host = user.username
-            return host
+            Host = user.username
+            return Host
             //console.log(host)
         }
         else if(user.role == "admin"){
@@ -114,7 +115,7 @@ async function login(Username,Password){  //user and host login
 
         if(result){
             t = 's'
-            host = result.username
+            Host = result.username
             //console.log(result)
             //console.log("Successfully Login")
             role = "host"
@@ -134,7 +135,7 @@ async function login(Username,Password){  //user and host login
 
             if(result){
                 t = 's'
-                security = result.username
+                Security = result.username
                 //console.log(result)
                 //console.log("Successfully Login")
                 role = "security"
@@ -323,7 +324,7 @@ async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
     let result = await client.db("user").collection("host").findOne({
         // visitor:{$elemMatch:{_id}}},
         $and:[
-            {username:{$eq:host}},
+            {username:{$eq:Host}},
             {visitor:{$elemMatch:{_id}}},
             {visitor:{$elemMatch:{date}}},
             {visitor:{$elemMatch:{time}}}
@@ -337,10 +338,10 @@ async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
         return "The visitor you entered already in list or time is occupied"
     }
     else{
-        await client.db("user").collection("host").updateOne({username:{$eq:host}},{
+        await client.db("user").collection("host").updateOne({host:{$eq:Host}},{
             $push:{visitor:{_id:_id,name:visitorName,phone:phoneNumber,company:companyName,date:date,time:time}}},{upsert:true})
         //console.log("The visitor is added successfully")
-        console.log(host)
+        console.log(Host)
         return "The visitor is added successfully"
     }
 }
@@ -349,7 +350,7 @@ async function removeVisitor(name,date,time){
 
     let result = await client.db("user").collection("host").findOne({
         $and:[
-            {username:{$eq:host}},
+            {username:{$eq:Host}},
             {visitor:{$elemMatch:{name}}},
             {visitor:{$elemMatch:{date}}},
             {visitor:{$elemMatch:{time}}}
@@ -359,7 +360,7 @@ async function removeVisitor(name,date,time){
     if(result){
         await client.db("user").collection("host").updateOne({
             $and:[
-                {username:{$eq:host}},
+                {username:{$eq:Host}},
                 {visitor:{$elemMatch:{name}}},
                 {visitor:{$elemMatch:{date}}},
                 {visitor:{$elemMatch:{time}}}
@@ -381,7 +382,7 @@ async function searchVisitor(_id){
 
     const result = await client.db("user").collection("host").findOne({
         $and:[
-            {host:{$eq:host}},
+            {host:{$eq:Host}},
             {visitor:{$elemMatch:{_id}}}
             ]
     },option)
