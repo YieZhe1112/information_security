@@ -33,10 +33,8 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://s2s3a:abc1234@record.55pqast.mongodb.net/?retryWrites=true&w=majority";
 
 //global variables  
-var Host
-var Security
+var name
 var role = 'null'
-var Admin
 
 var jwt_token
 var cookie
@@ -67,21 +65,26 @@ function verifyToken (req, res, next){
         }
         
         req.user = user
-        if(user.role == "security"){
-            Security = user.username
-            return Security
-            //console.log(security)
-        }
-        else if(user.role == "host"){
-            Host = user.username
-            return Host
-            //console.log(host)
-        }
-        else if(user.role == "admin"){
-            Admin = user.username
-            return Admin
-            //console.log(host)
-        }
+        name = user.username
+        role = user. role
+        // if(user.role == "security"){
+        //     Security = user.username
+        //     role = user.role
+        //     console.log(user.username)
+        //     console.log(user.role)
+        // }
+        // else if(user.role == "host"){
+        //     Host = user.username
+        //     role = user.role
+        //     console.log(user.username)
+        //     console.log(user.role)
+        // }
+        // else if(user.role == "admin"){
+        //     Admin = user.username
+        //     role = user.role
+        //     console.log(user.username)
+        //     console.log(user.role)
+        // }
         return next()
     });
 }
@@ -104,7 +107,7 @@ client.connect().then(res=>{
 
 async function login(Username,Password){  //user and host login
 
-    const option={projection:{password:0,host:0,role:0,visitor:0, admin:0}}  //pipeline to project usernamne and email
+    const option={projection:{password:0,host:0,visitor:0, admin:0}}  //pipeline to project usernamne and email
 
     const result = await client.db("user").collection("host").findOne({
         $and:[
@@ -115,16 +118,16 @@ async function login(Username,Password){  //user and host login
 
         if(result){
             t = 's'
-            Host = result.username
+            //Host = result.username
             //console.log(result)
             //console.log("Successfully Login")
-            role = "host"
+            //role = "host"
             create_jwt (result)
             return result
             
     }
         else {
-            const option={projection:{password:0,host:0,role:0,visitor:0,admin:0}}  //pipeline to project usernamne and email
+            const option={projection:{password:0,host:0,visitor:0,admin:0}}  //pipeline to project usernamne and email
 
             const result = await client.db("user").collection("security").findOne({
                 $and:[
@@ -135,10 +138,10 @@ async function login(Username,Password){  //user and host login
 
             if(result){
                 t = 's'
-                Security = result.username
+                //Security = result.username
                 //console.log(result)
                 //console.log("Successfully Login")
-                role = "security"
+                //role = "security"
                 create_jwt (result)
                 return result
                 
@@ -176,8 +179,8 @@ async function admin(Username,ID,Password){
             if(result){
                 lock=0
                 t = 's'
-                role = "admin"
-                Admin = result.username
+                //role = "admin"
+                //Admin = result.username
                 create_jwt (result)
                 const result2 = await client.db("user").collection("host").find().toArray()
                 return result2  
@@ -194,7 +197,6 @@ async function admin(Username,ID,Password){
         await client.db("user").collection("admin").updateOne({
            username:Username
         },{$set:{status:"false"}})
-        console.log(Admin)
 
         while(LOCK){
             return "Your account has been lock, please contact security to activate the account"
@@ -324,7 +326,7 @@ async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
     let result = await client.db("user").collection("host").findOne({
         // visitor:{$elemMatch:{_id}}},
         $and:[
-            {username:{$eq:Host}},
+            {username:{$eq:name}},
             {visitor:{$elemMatch:{_id}}},
             {visitor:{$elemMatch:{date}}},
             {visitor:{$elemMatch:{time}}}
@@ -338,10 +340,12 @@ async function addVisitor(_id,visitorName,phoneNumber,companyName,date,time){
         return "The visitor you entered already in list or time is occupied"
     }
     else{
-        await client.db("user").collection("host").updateOne({host:{$eq:Host}},{
+        await client.db("user").collection("host").updateOne({
+            username:{$eq:name}
+        },{
             $push:{visitor:{_id:_id,name:visitorName,phone:phoneNumber,company:companyName,date:date,time:time}}},{upsert:true})
         //console.log("The visitor is added successfully")
-        console.log(Host)
+        //console.log(Host)
         return "The visitor is added successfully"
     }
 }
@@ -350,7 +354,7 @@ async function removeVisitor(name,date,time){
 
     let result = await client.db("user").collection("host").findOne({
         $and:[
-            {username:{$eq:Host}},
+            {host:{$eq:Host}},
             {visitor:{$elemMatch:{name}}},
             {visitor:{$elemMatch:{date}}},
             {visitor:{$elemMatch:{time}}}
@@ -360,7 +364,7 @@ async function removeVisitor(name,date,time){
     if(result){
         await client.db("user").collection("host").updateOne({
             $and:[
-                {username:{$eq:Host}},
+                {host:{$eq:name}},
                 {visitor:{$elemMatch:{name}}},
                 {visitor:{$elemMatch:{date}}},
                 {visitor:{$elemMatch:{time}}}
@@ -382,7 +386,7 @@ async function searchVisitor(_id){
 
     const result = await client.db("user").collection("host").findOne({
         $and:[
-            {host:{$eq:Host}},
+            {username:{$eq:name}},
             {visitor:{$elemMatch:{_id}}}
             ]
     },option)
