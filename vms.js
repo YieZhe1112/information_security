@@ -354,7 +354,7 @@ async function removeVisitor(name,date,time){
 
     let result = await client.db("user").collection("host").findOne({
         $and:[
-            {host:{$eq:Host}},
+            {host:{$eq:name}},
             {visitor:{$elemMatch:{name}}},
             {visitor:{$elemMatch:{date}}},
             {visitor:{$elemMatch:{time}}}
