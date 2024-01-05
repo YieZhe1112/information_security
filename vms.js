@@ -351,7 +351,7 @@ async function registerVisitor(regIC,regUsername,regPassword,regEmail,regRole,re
     }
 }
 
-async function registerHost(regIC,regUsername,regPassword,regEmail,regRole){  //register host
+async function registerHost(regIC,regUsername,regPassword,regEmail,regPhone){  //register host
     if (await client.db("user").collection("host").findOne({_id : regIC})){
         return "Your IC has already registered in the system"
     }
@@ -372,6 +372,7 @@ async function registerHost(regIC,regUsername,regPassword,regEmail,regRole){  //
                 "username":regUsername,
                 "password":regPassword,
                 "email":regEmail,
+                "phone":regPhone,
                 "status":"pending",
                 "role":"host"
             })
@@ -381,7 +382,7 @@ async function registerHost(regIC,regUsername,regPassword,regEmail,regRole){  //
     }
 }
 
-async function registerTestHost(regIC,regUsername,regPassword,regEmail,regRole){  //register host
+async function registerTestHost(regIC,regUsername,regPassword,regEmail,regPhone){  //register host
     if (await client.db("user").collection("host").findOne({_id : regIC})){
         return "Your IC has already registered in the system"
     }
@@ -402,6 +403,7 @@ async function registerTestHost(regIC,regUsername,regPassword,regEmail,regRole){
                 "username":regUsername,
                 "password":regPassword,
                 "email":regEmail,
+                "phone":regPhone,
                 "status":"approve",
                 "role":"host"
             })
@@ -491,7 +493,7 @@ async function removeVisitor(_id,date,time){
             {visitor:{$elemMatch:{time}}}
             ]
     })
-    console.log(result)
+    //console.log(result)
 
     if(result){
         await client.db("user").collection("host").updateOne({
@@ -511,6 +513,20 @@ async function removeVisitor(_id,date,time){
     }
 }
 
+async function phone(Username){
+
+    let result = await client.db("user").collection("host").findOne({
+        host:{$eq:Username}
+    })
+    //console.log(result)
+
+    if(result){
+        return result.phone
+    }
+    else{
+        return "Host not found"
+    }
+}
 
 async function searchVisitor(_id){
     //const option={projection:{password:0,role:0}}  //pipeline to project usernamne and email
@@ -588,7 +604,7 @@ app.post('/login', async(req, res) => {   //login
 
 //Test
 app.post("/test/register/host" , verifyToken, async(req, res) => {  //register test host
-    res.send(await registerTestHost(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role))
+    res.send(await registerTestHost(req.body._id,req.body.username,req.body.password,req.body.email,req.body.phone))
 })
 
 //host HTTP methods    
@@ -657,9 +673,16 @@ app.post("/login/security/register/visitor" , verifyToken, async (req, res) => {
     else
         res.send (" ")
 })
+
+app.post("/login/security/retrivePhone" , verifyToken, async (req, res) => {  //register visitor
+    if ((role == "security"))
+        res.send(await phone(req.body.username))
+    else
+        res.send (" ")
+})
         
 app.post("/register" , async(req, res) => {  //register host
-    res.send(await registerHost(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role))     
+    res.send(await registerHost(req.body._id,req.body.username,req.body.password,req.body.email,req.body.phone))     
 })
 
 app.get('/logout', (req, res) => {
@@ -872,6 +895,8 @@ app.post('/login/admin/updateRole',verifyToken, async(req, res) => {   //retrive
  *                  type: string
  *                email:
  *                  type: string
+ *                phone:
+ *                  type: string
  *      responses:
  *        200:
  *          description: OK
@@ -950,6 +975,27 @@ app.post('/login/admin/updateRole',verifyToken, async(req, res) => {   //retrive
 
 /**
  * @swagger
+ *  /login/security/retrivePhone:
+ *    post:
+ *      tags:
+ *      - Security
+ *      description: Retrive phone
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                username:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
  *  /register:
  *    post:
  *      tags:
@@ -969,6 +1015,8 @@ app.post('/login/admin/updateRole',verifyToken, async(req, res) => {   //retrive
  *                _id:
  *                  type: string
  *                email:
+ *                  type: string
+ *                phone:
  *                  type: string
  *      responses:
  *        200:
