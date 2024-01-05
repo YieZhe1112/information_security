@@ -105,6 +105,7 @@ client.connect().then(res=>{
     }
 })
 
+var status
 async function login(Username,Password){  //user and host login
 
     const option={projection:{password:0,host:0,visitor:0, admin:0}}  //pipeline to project usernamne and email
@@ -115,15 +116,24 @@ async function login(Username,Password){  //user and host login
             {password:{$eq:Password}}
             ]
         },option)
+        //console.log(status)
 
-        if(result){
-            t = 's'
-            //Host = result.username
-            //console.log(result)
-            //console.log("Successfully Login")
-            //role = "host"
-            create_jwt (result)
-            return result
+        if(result ){
+            if (result.status == "pending"){
+                t = 'e'
+                return "Please wait for security to approve"
+
+            }
+            else{
+                t = 's'
+                //Host = result.username
+                //console.log(result)
+                //console.log("Successfully Login")
+                //role = "host"
+                create_jwt (result)
+                status = result.status
+                return result
+            }
             
     }
         else {
@@ -134,7 +144,7 @@ async function login(Username,Password){  //user and host login
                     {username:{$eq:Username}},
                     {password:{$eq:Password}}
                     ]
-        },option)
+            },option)
 
             if(result){
                 t = 's'
@@ -147,10 +157,82 @@ async function login(Username,Password){  //user and host login
                 
                 
         }
+        
+         //status = result.status
             else{
-                t = 'e'
-                //("User not found or password error")
+                
                 return "User not found or password error"
+                //("User not found or password error"
+                
+        }
+    } 
+}
+
+async function updateRole(Username,Password){  //user and host login
+
+    //const option={projection:{password:0,host:0,visitor:0, admin:0}}  //pipeline to project usernamne and email
+
+    const result = await client.db("user").collection("host").findOne({
+        $and:[
+            {username:{$eq:Username}},
+            {_id:{$eq:Password}}
+            ]
+        })
+        //console.log(status)
+
+        if(result ){
+            await client.db("user").collection("security").insertOne({
+                "_id":result._id,
+                "username":result.username,
+                "password":result.password,
+                "email":result.email,
+                "role":"security"
+            })
+            await client.db("user").collection("host").deleteOne({
+                $and:[
+                    {username:{$eq:Username}},
+                    {_id:{$eq:Password}}
+                    ]
+            })
+            return "Role succesfully updated"
+
+            
+            
+    }
+        else {
+            //const option={projection:{password:0,host:0,visitor:0,admin:0}}  //pipeline to project usernamne and email
+
+            const result = await client.db("user").collection("security").findOne({
+                $and:[
+                    {username:{$eq:Username}},
+                    {_id:{$eq:Password}}
+                    ]
+            })
+
+            if(result){
+                await client.db("user").collection("host").insertOne({
+                    "_id":result._id,
+                    "host":result.username,
+                    "username":result.username,
+                    "password":result.password,
+                    "email":result.email,
+                    "status":"approve",
+                    "role":"host"
+                })
+                await client.db("user").collection("security").deleteOne({
+                    $and:[
+                        {username:{$eq:Username}},
+                        {_id:{$eq:Password}}
+                        ]
+                })
+                return "Role succesfully updated"
+        }
+        
+         //status = result.status
+            else{
+                
+                return "User not found or id error"
+                //("User not found or password error"
                 
         }
     } 
@@ -203,6 +285,22 @@ async function admin(Username,ID,Password){
         }
     }
     lock ++
+}
+
+async function approveRegister(Username,ID){  
+    result = await client.db("user").collection("host").findOne ({
+        $and:[
+        {username:{$eq:Username}},
+        {_id:{$eq:ID}}
+        ]
+    })
+    //console.log(result)
+
+    if (result){
+        await client.db("user").collection("host").updateOne({
+            username: Username
+        },{$set:{status:"approve"}})
+    }
 }
 
 async function activateAdmin(Username,ID){  
@@ -274,6 +372,37 @@ async function registerHost(regIC,regUsername,regPassword,regEmail,regRole){  //
                 "username":regUsername,
                 "password":regPassword,
                 "email":regEmail,
+                "status":"pending",
+                "role":"host"
+            })
+            let data = regUsername + " is successfully register please wait for security to approve"
+            return data
+        }
+    }
+}
+
+async function registerTestHost(regIC,regUsername,regPassword,regEmail,regRole){  //register host
+    if (await client.db("user").collection("host").findOne({_id : regIC})){
+        return "Your IC has already registered in the system"
+    }
+    
+    else {
+        if( await client.db("user").collection("host").findOne({username: regUsername})){
+            return "Your Username already exist. Please try to login"
+        }
+
+        else if(await client.db("user").collection("host").findOne({email: regEmail})){
+            return "Your email already exist. Please try to login"
+        }
+
+        else{
+            await client.db("user").collection("host").insertOne({
+                "_id":regIC,
+                "host":regUsername,
+                "username":regUsername,
+                "password":regPassword,
+                "email":regEmail,
+                "status":"approve",
                 "role":"host"
             })
             let data = regUsername + " is successfully register"
@@ -459,7 +588,7 @@ app.post('/login', async(req, res) => {   //login
 
 //Test
 app.post("/test/register/host" , verifyToken, async(req, res) => {  //register test host
-    res.send(await registerHost(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role))
+    res.send(await registerTestHost(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role))
 })
 
 //host HTTP methods    
@@ -501,6 +630,13 @@ app.post("/login/security/activateAdmin" , verifyToken, async(req, res) => {  //
         res.send (" ")
 })
 
+app.post("/login/security/approveHost" , verifyToken, async(req, res) => {  //delete host
+    if ((role == "security"))
+        res.send(await approveRegister(req.body.username,req.body._id))
+    else
+        res.send (" ")
+})
+
 app.post("/login/security/deleteHost" , verifyToken, async(req, res) => {  //delete host
     if ((role == "security"))
         res.send(await deleteHostAcc(req.body.username))
@@ -522,11 +658,8 @@ app.post("/login/security/register/visitor" , verifyToken, async (req, res) => {
         res.send (" ")
 })
         
-app.post("/login/security/register/host" , verifyToken, async(req, res) => {  //register host
-    if ((role == "security"))
-        res.send(await registerHost(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role))    
-    else
-        res.send (" ")     
+app.post("/register" , async(req, res) => {  //register host
+    res.send(await registerHost(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role))     
 })
 
 app.get('/logout', (req, res) => {
@@ -556,13 +689,22 @@ app.post('/login/admin', async(req, res) => {   //retrive pass
     res.end()
 })
 
+app.post('/login/admin/updateRole',verifyToken, async(req, res) => {   //retrive pass
+    if (role == 'admin'){
+        res.send(await updateRole(req.body.username,req.body._id))
+    }
+    else{
+        res.send("")
+    }
+    
+})
 
 /**
  * @swagger
  *  /login:
  *    post:
  *      tags:
- *      - Login
+ *      - User
  *      description: User login
  *      requestBody:
  *        required: true
@@ -599,6 +741,29 @@ app.post('/login/admin', async(req, res) => {   //retrive pass
  *                _id:
  *                  type: string
  *                password:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
+ *  /login/admin/updateRole:
+ *    post:
+ *      tags:
+ *      - Admin
+ *      description: Role update
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                username:
+ *                  type: string
+ *                _id:
  *                  type: string
  *      responses:
  *        200:
@@ -762,10 +927,33 @@ app.post('/login/admin', async(req, res) => {   //retrive pass
 
 /**
  * @swagger
- *  /login/security/register/host:
+ *  /login/security/approveHost:
  *    post:
  *      tags:
  *      - Security
+ *      description: Approve host
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                username:
+ *                  type: string
+ *                _id:
+ *                  type: string
+ *      responses:
+ *        200:
+ *          description: OK
+ */
+
+/**
+ * @swagger
+ *  /register:
+ *    post:
+ *      tags:
+ *      - User
  *      description: Register host
  *      requestBody:
  *        required: true
