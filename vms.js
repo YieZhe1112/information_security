@@ -300,6 +300,11 @@ async function approveRegister(Username,ID){
         await client.db("user").collection("host").updateOne({
             username: Username
         },{$set:{status:"approve"}})
+
+        return "Account successfully activated"
+    }
+    else{
+        return "Account not found"
     }
 }
 
@@ -530,7 +535,7 @@ async function phone(Username){
 
 async function searchVisitor(_id){
     //const option={projection:{password:0,role:0}}  //pipeline to project usernamne and email
-    const option={projection:{_id:0,username:0,password:0,email:0,role:0,host:0}}
+    const option={projection:{_id:0,username:0,password:0,email:0,role:0,host:0,phone:0,status:0}}
 
     const result = await client.db("user").collection("host").findOne({
         $and:[
