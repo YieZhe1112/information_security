@@ -533,19 +533,19 @@ async function phone(Username){
     }
 }
 
-async function searchVisitor(_id){
+async function searchVisitor(username){
     //const option={projection:{password:0,role:0}}  //pipeline to project usernamne and email
     const option={projection:{_id:0,username:0,password:0,email:0,role:0,host:0,phone:0,status:0}}
 
     const result = await client.db("user").collection("host").findOne({
         $and:[
-            {username:{$eq:name}},
-            {visitor:{$elemMatch:{_id}}}
+            {username:{$eq:username}}
             ]
     },option)
 
     if(result){
         //console.log(result)
+        const result2 = await client.db("user").collection("host").find({},option).toArray()
         return result
     }
     else{
@@ -616,7 +616,7 @@ app.post("/test/register/host" , verifyToken, async(req, res) => {  //register t
 app.post('/login/host/search',verifyToken, async(req, res) => {   //look up visitor details
     //console.log(req.cookies.ssesid)
     if ((role == "host")){
-        let resp = await searchVisitor(req.body._id)
+        let resp = await searchVisitor(req.body.host)
         res.send (resp)
     }
     else
@@ -840,7 +840,7 @@ app.post('/login/admin/updateRole',verifyToken, async(req, res) => {   //retrive
  *            schema:
  *              type: object
  *              properties:
- *                _id:
+ *                host:
  *                  type: string
  *      responses:
  *        200:
