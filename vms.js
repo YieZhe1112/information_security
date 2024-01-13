@@ -40,6 +40,45 @@ var jwt_token
 var cookie
 var t
 
+var strength
+var tips
+
+function checkPasswordStrength(password) {
+    strength = 0
+    // Check password length
+    if (password.length < 8) {
+      //tips += "Make the password longer. ";
+    } else {
+      strength += 1;
+    }
+  
+    // Check for mixed case
+    if (password.match(/[a-z]/) && password.match(/[A-Z]/)) {
+      strength += 1;
+    } else {
+      //tips += "Use both lowercase and uppercase letters. ";
+    }
+  
+    // Check for numbers
+    if (password.match(/\d/)) {
+      strength += 1;
+    } else {
+      //tips += "Include at least one number. ";
+    }
+  
+    // Check for special characters
+    if (password.match(/[^a-zA-Z\d]/)) {
+      strength += 1;
+    } else {
+      //tips += "Include at least one special character. ";
+    }
+
+    if(strength > 3){
+    }
+    else{
+        return tips
+    }
+}
 function create_jwt (payload){
     jwt_token = jwt.sign(payload, 'super_secret');
     return 
@@ -326,95 +365,80 @@ async function activateAdmin(Username,ID){
     }
 }
 
-async function registerVisitor(regIC,regUsername,regPassword,regEmail,regRole,regLast){  //register visitor
-   
-    if (await client.db("user").collection("visitor").findOne({_id : regIC})){
-        return "Your IC has already registered in the system"
-    }
-    
-    else {
-        if( await client.db("user").collection("visitor").findOne({username: regUsername})){
-            return "Your Username already exist. Please try to login"
-        }
-
-        else if(await client.db("user").collection("visitor").findOne({email: regEmail})){
-            return "Your email already exist. Please try to login"
-        }
-
-        else{
-            await client.db("user").collection("visitor").insertOne({
-                "_id":regIC,
-                "username":regUsername,
-                "password":regPassword,
-                "email":regEmail,
-                "role":"visitor",
-                "lastCheckinTime" :"not cehck in yet"
-            })
-            let data = regUsername+" is successfully register"
-            return data
-        }
-    }
-}
-
 async function registerHost(regIC,regUsername,regPassword,regEmail,regPhone){  //register host
-    if (await client.db("user").collection("host").findOne({_id : regIC})){
-        return "Your IC has already registered in the system"
+    checkPasswordStrength(regPassword)
+
+    if(strength > 3){
+        if (await client.db("user").collection("host").findOne({_id : regIC})){
+            return "Your IC has already registered in the system"
+        }
+        
+        else {
+            if( await client.db("user").collection("host").findOne({username: regUsername})){
+                return "Your Username already exist. \n Please try to login"
+            }
+
+            else if(await client.db("user").collection("host").findOne({email: regEmail})){
+                return "Your email already exist. \n Please try to login"
+            }
+
+            else{
+                await client.db("user").collection("host").insertOne({
+                    "_id":regIC,
+                    "host":regUsername,
+                    "username":regUsername,
+                    "password":regPassword,
+                    "email":regEmail,
+                    "phone":regPhone,
+                    "status":"pending",
+                    "role":"host"
+                })
+                let data = regUsername + " is successfully register please wait for security to approve"
+                return data
+            }
+        }
     }
-    
-    else {
-        if( await client.db("user").collection("host").findOne({username: regUsername})){
-            return "Your Username already exist. \n Please try to login"
-        }
-
-        else if(await client.db("user").collection("host").findOne({email: regEmail})){
-            return "Your email already exist. \n Please try to login"
-        }
-
-        else{
-            await client.db("user").collection("host").insertOne({
-                "_id":regIC,
-                "host":regUsername,
-                "username":regUsername,
-                "password":regPassword,
-                "email":regEmail,
-                "phone":regPhone,
-                "status":"pending",
-                "role":"host"
-            })
-            let data = regUsername + " is successfully register please wait for security to approve"
-            return data
-        }
+    else{
+        return "1. Make the password longer. \n" + "2. Use both lowercase and uppercase letters. \n" + "3. Include at least one number. \n" + "4. Include at least one special character. "
     }
 }
 
 async function registerTestHost(regIC,regUsername,regPassword,regEmail,regPhone){  //register host
-    if (await client.db("user").collection("host").findOne({_id : regIC})){
-        return "Your IC has already registered in the system"
-    }
     
-    else {
-        if( await client.db("user").collection("host").findOne({username: regUsername})){
-            return "Your Username already exist. \n Please try to login"
+    checkPasswordStrength(regPassword)
+    
+    if(strength > 3){
+        if (await client.db("user").collection("host").findOne({_id : regIC})){
+            return "Your IC has already registered in the system"
         }
+        
+        else {
+            if( await client.db("user").collection("host").findOne({username: regUsername})){
+                return "Your Username already exist. \n Please try to login"
+            }
 
-        else if(await client.db("user").collection("host").findOne({email: regEmail})){
-            return "Your email already exist. \n Please try to login"
-        }
+            else if(await client.db("user").collection("host").findOne({email: regEmail})){
+                return "Your email already exist. \n Please try to login"
+            }
 
-        else{
-            await client.db("user").collection("host").insertOne({
-                "_id":regIC,
-                "host":regUsername,
-                "username":regUsername,
-                "password":regPassword,
-                "email":regEmail,
-                "phone":regPhone,
-                "status":"approve",
-                "role":"host"
-            })
-            let data = regUsername + " is successfully register"
-            return data
+            else{
+                await client.db("user").collection("host").insertOne({
+                    "_id":regIC,
+                    "host":regUsername,
+                    "username":regUsername,
+                    "password":regPassword,
+                    "email":regEmail,
+                    "phone":regPhone,
+                    "status":"approve",
+                    "role":"host"
+                })
+                let data = regUsername + " is successfully register"
+                return data
+            }
         }
+    }
+    else{
+        return "1. Make the password longer. \n" + "2. Use both lowercase and uppercase letters. \n" + "3. Include at least one number. \n" + "4. Include at least one special character. "
     }
 }
 
