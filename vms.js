@@ -539,6 +539,7 @@ async function searchVisitor(username){
 
     const result = await client.db("user").collection("host").findOne({
         $and:[
+            {host:{$eq:name}},
             {username:{$eq:username}}
             ]
     },option)
@@ -549,7 +550,7 @@ async function searchVisitor(username){
         return result
     }
     else{
-        return "No visitor found"
+        return "You are not allow to see other host's visitors"
     }
     
 }
@@ -602,7 +603,7 @@ app.post('/login', async(req, res) => {   //login
         }
     }
     else{
-        res.send("")
+        res.send("You had login as another account. Please log out")
     }
     res.end()
 })
@@ -620,7 +621,7 @@ app.post('/login/host/search',verifyToken, async(req, res) => {   //look up visi
         res.send (resp)
     }
     else
-        res.send (" ")
+        res.send ("Please log in")
 })
 
 app.post('/login/host/addVisitor',verifyToken, async (req, res) => {   //add visitor
@@ -629,7 +630,7 @@ app.post('/login/host/addVisitor',verifyToken, async (req, res) => {   //add vis
         res.send (response)
     }
     else
-        res.send (" ")
+        res.send ("Please log in")
         //console.log (" ")
 })
 
@@ -639,7 +640,7 @@ app.post('/login/host/removeVisitor',verifyToken, async (req, res) => {   //remo
         res.send (response)
     }
     else
-        res.send (" ")
+        res.send ("Please log in")
        //console.log (" ")
 })
     
@@ -648,42 +649,42 @@ app.post("/login/security/activateAdmin" , verifyToken, async(req, res) => {  //
     if ((role == "security"))
         res.send(await activateAdmin(req.body.username,req.body._id))
     else
-        res.send (" ")
+        res.send ("Please log in")
 })
 
 app.post("/login/security/approveHost" , verifyToken, async(req, res) => {  //delete host
     if ((role == "security"))
         res.send(await approveRegister(req.body.username,req.body._id))
     else
-        res.send (" ")
+        res.send ("Please log in")
 })
 
 app.post("/login/security/deleteHost" , verifyToken, async(req, res) => {  //delete host
     if ((role == "security"))
         res.send(await deleteHostAcc(req.body.username))
     else
-        res.send (" ")
+        res.send ("Please log in")
 })
 
 app.post("/login/security/deleteVisitor" , verifyToken, async(req, res) => {  //delete visitor
     if ((role == "security"))
         res.send(await deleteVisitorAcc(req.body.username))
     else
-        res.send (" ")
+        res.send ("Please log in")
 })
 
 app.post("/login/security/register/visitor" , verifyToken, async (req, res) => {  //register visitor
     if ((role == "security"))
         res.send(await registerVisitor(req.body._id,req.body.username,req.body.password,req.body.email,req.body.role,req.body.lastCheckinTime))
     else
-        res.send (" ")
+        res.send ("Please log in")
 })
 
 app.post("/login/security/retrivePhone" , verifyToken, async (req, res) => {  //register visitor
     if ((role == "security"))
         res.send(await phone(req.body.username))
     else
-        res.send (" ")
+        res.send ("Please log in")
 })
         
 app.post("/register" , async(req, res) => {  //register host
@@ -712,7 +713,7 @@ app.post('/login/admin', async(req, res) => {   //retrive pass
         }
     }
     else{
-        res.send("")
+        res.send("You had login as another account. Please log out")
     }
     res.end()
 })
@@ -722,7 +723,7 @@ app.post('/login/admin/updateRole',verifyToken, async(req, res) => {   //retrive
         res.send(await updateRole(req.body.username,req.body._id))
     }
     else{
-        res.send("")
+        res.send("Please log in")
     }
     
 })
