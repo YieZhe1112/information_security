@@ -281,7 +281,7 @@ async function admin(Username,ID,Password){
         },{$set:{status:"false"}})
 
         while(LOCK){
-            return "Your account has been lock, please contact security to activate the account"
+            return "Your account has been lock. \n Please contact security to activate the account"
         }
     }
     lock ++
@@ -363,11 +363,11 @@ async function registerHost(regIC,regUsername,regPassword,regEmail,regPhone){  /
     
     else {
         if( await client.db("user").collection("host").findOne({username: regUsername})){
-            return "Your Username already exist. Please try to login"
+            return "Your Username already exist. \n Please try to login"
         }
 
         else if(await client.db("user").collection("host").findOne({email: regEmail})){
-            return "Your email already exist. Please try to login"
+            return "Your email already exist. \n Please try to login"
         }
 
         else{
@@ -394,11 +394,11 @@ async function registerTestHost(regIC,regUsername,regPassword,regEmail,regPhone)
     
     else {
         if( await client.db("user").collection("host").findOne({username: regUsername})){
-            return "Your Username already exist. Please try to login"
+            return "Your Username already exist. \n Please try to login"
         }
 
         else if(await client.db("user").collection("host").findOne({email: regEmail})){
-            return "Your email already exist. Please try to login"
+            return "Your email already exist. \n Please try to login"
         }
 
         else{
@@ -519,9 +519,14 @@ async function removeVisitor(_id,date,time){
 }
 
 async function phone(Username){
+    
 
     let result = await client.db("user").collection("host").findOne({
-        host:{$eq:Username}
+        $and:[
+            {host:{$eq:Username}},
+            {visitor:{$ne:[]}}
+        ]
+        
     })
     //console.log(result)
 
@@ -529,7 +534,7 @@ async function phone(Username){
         return result.phone
     }
     else{
-        return "Host not found"
+        return "There is no visitor for the host. \n You are not allow to review the host's contact."
     }
 }
 
@@ -577,7 +582,7 @@ async function retrivepass(username,_id,date,time){
             $pull:{visitor:{_id:_id},visitor:{time:time},visitor:{date:date}}},{upsert:true})
 
         //console.log("Successfully retrive pass")
-        return "Successfully retrive pass"
+        return "Successfully retrive pass \n" + "Host: " + username + "\n" + "Time: " + time
         // console.log("Pass already retrived or not in the list")
         // return "Pass already retrived or not in the lits"
     }
