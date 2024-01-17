@@ -282,48 +282,59 @@ var LOCK = false
 
 async function admin(Username,ID,Password){  
 
-    //const option={projection:{password:0,host:0,role:0,visitor:0}}  //pipeline to project usernamne and email   
-    const result1 = await client.db("user").collection("admin").findOne(
-        {status:{$eq:"true"}
-    })
-    //console.log(result1)
+    if(LOCK==false){
+        //const option={projection:{password:0,host:0,role:0,visitor:0}}  //pipeline to project usernamne and email   
+        const result1 = await client.db("user").collection("admin").findOne(
+            {status:{$eq:"true"}
+        })
+        //console.log(result1)
 
-    if(lock <2 && result1){
-        const result = await client.db("user").collection("admin").findOne({
-            $and:[
-                {username:{$eq:Username}},
-                {_id:{$eq:ID}},
-                {password:{$eq:Password}}
-                ]
-            })
-    
-            if(result){
-                lock=0
-                t = 's'
-                //role = "admin"
-                //Admin = result.username
-                create_jwt (result)
-                const result2 = await client.db("user").collection("host").find().toArray()
-                return result2  
+        if(lock <2 && result1){
+            if(result1.status == false){
+                return "Your account has been lock. \nPlease contact security to activate the account"
             }
+
             else{
-                t = 'e'
-                lock ++
-                //("User not found or password error")
-                return "User not found or password error"
+                const result = await client.db("user").collection("admin").findOne({
+                    $and:[
+                        {username:{$eq:Username}},
+                        {_id:{$eq:ID}},
+                        {password:{$eq:Password}}
+                        ]
+                    })
+            
+                    if(result){
+                        lock=0
+                        t = 's'
+                        //role = "admin"
+                        //Admin = result.username
+                        create_jwt (result)
+                        const result2 = await client.db("user").collection("host").find().toArray()
+                        return result2  
+                    }
+                    else{
+                        t = 'e'
+                        lock ++
+                        //("User not found or password error")
+                        return "User not found or password error"
+                    }
             }
-    }
-    else{
-        LOCK = true
-        await client.db("user").collection("admin").updateOne({
-           username:Username
-        },{$set:{status:"false"}})
-
-        while(LOCK){
-            return "Your account has been lock. \n Please contact security to activate the account"
         }
+        else{
+            LOCK = true
+            await client.db("user").collection("admin").updateOne({
+            username:Username
+            },{$set:{status:"false"}})
+
+            while(LOCK){
+                setTimeout(function(){LOCK = false},300000)
+                lock = 0
+                return "The attempt limit exceed. \nPlease wait for 5 minutes before retry."
+            }
+            
+        }
+        lock ++
     }
-    lock ++
 }
 
 async function approveRegister(Username,ID){  
@@ -558,7 +569,7 @@ async function phone(Username){
         return result.phone
     }
     else{
-        return "There is no visitor for the host. \n You are not allow to review the host's contact."
+        return "There is no visitor for the host. \nYou are not allow to review the host's contact."
     }
 }
 
