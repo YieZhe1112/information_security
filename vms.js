@@ -285,12 +285,15 @@ async function admin(Username,ID,Password){
     if(LOCK==false){
         //const option={projection:{password:0,host:0,role:0,visitor:0}}  //pipeline to project usernamne and email   
         const result1 = await client.db("user").collection("admin").findOne(
-            {status:{$eq:"true"}
+            {username:{$eq:Username}
         })
+        
+
         //console.log(result1)
 
-        if(lock <2 && result1){
-            if(result1.status == false){
+        if(lock <2 && result1 ){
+            console.log(result1.status)
+            if(result1.status == "false"){
                 return "Your account has been lock. \nPlease contact security to activate the account"
             }
 
