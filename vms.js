@@ -294,6 +294,7 @@ async function admin(Username,ID,Password){
         if(lock <2 && result1 ){
             console.log(result1.status)
             if(result1.status == "false"){
+                lock ++
                 return "Your account has been lock. \nPlease contact security to activate the account"
             }
 
@@ -336,7 +337,6 @@ async function admin(Username,ID,Password){
             }
             
         }
-        lock ++
     }
 }
 
