@@ -1,6 +1,7 @@
 const express = require('express')
 const jwt = require("jsonwebtoken")
 const cookieParser = require("cookie-parser")
+const rateLimitMiddleware = require("./rateLimiter")
 const app = express()
 const port = process.env.PORT || 3000;
 const swaggerUi = require ("swagger-ui-express")
@@ -294,7 +295,6 @@ async function admin(Username,ID,Password){
         if(lock <2 && result1 ){
             console.log(result1.status)
             if(result1.status == "false"){
-                lock ++
                 return "Your account has been lock. \nPlease contact security to activate the account"
             }
 
@@ -633,7 +633,7 @@ async function retrivepass(username,_id,date,time){
 }
 
 //HTTP login method
-app.post('/login', async(req, res) => {   //login
+app.post('/login', rateLimitMiddleware, async(req, res) => {   //login
     cookie = getcookie(req);
     let resp = await login(req.body.username,req.body.password)
     if(cookie == null){
@@ -736,6 +736,8 @@ app.post("/register" , async(req, res) => {  //register host
 
 app.get('/logout', (req, res) => {
     role = "null"
+    delete jwt_token
+    delete cookie
     res.clearCookie("ssesid").send("You have log out")
 })
 
