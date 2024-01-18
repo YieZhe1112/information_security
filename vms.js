@@ -293,7 +293,7 @@ async function admin(Username,ID,Password){
         //console.log(result1)
 
         if(lock <2 && result1 ){
-            console.log(result1.status)
+            //console.log(result1.status)
             if(result1.status == "false"){
                 return "Your account has been lock. \nPlease contact security to activate the account"
             }
@@ -324,6 +324,10 @@ async function admin(Username,ID,Password){
                     }
             }
         }
+        else if(lock < 2 && !result1){
+            lock ++ 
+            return "User not found or password error"           
+        }
         else{
             LOCK = true
             await client.db("user").collection("admin").updateOne({
@@ -335,7 +339,6 @@ async function admin(Username,ID,Password){
                 lock = 0
                 return "The attempt limit exceed. \nPlease wait for 5 minutes before retry."
             }
-            
         }
     }
 }
